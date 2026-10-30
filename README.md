@@ -91,3 +91,4 @@ The PDF or Word file itself is never uploaded. Only the questions the app reads 
 - **Exam Log password:** it protects the delete buttons inside the app. Anyone who has access to your Google account could still reach the data in Firebase, so keep that account secure.
 - **Free plan limits:** Firebase's free Spark plan allows about 50,000 reads and 20,000 writes per day and 1 GiB of storage, which is plenty for personal study.
 - **Updating the app later:** replace `index.html` in your repository (keep your `FIREBASE_CONFIG` values) and the site updates in a minute or two.
+# quiz-studio-online-web
