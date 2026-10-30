@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quiz Studio Online</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<script>(function(){var t,m={light:"ghost",dark:"knight",green:"forest",cyber:"knight",ghost:"ghost",forest:"forest",knight:"knight"};try{t=m[localStorage.getItem("pdfquiz:v1:theme")]}catch(e){}if(!t)t=(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"knight":"ghost";document.documentElement.setAttribute("data-theme",t)})();</script>
+<style>
+:root{--sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--head:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(var(--sh,64px) + env(safe-area-inset-top,0px))}
+body{margin:0;color:var(--ink);font:500 15px/1.55 var(--sans);background-color:var(--bg);background-image:radial-gradient(900px 380px at 12% -8%,var(--glow),transparent 70%),radial-gradient(var(--dot) 1px,transparent 1.3px);background-size:auto,22px 22px}
+h1,h2{font-family:var(--head)}
+h1{font:700 34px/1.12 var(--head);letter-spacing:-.02em;margin:0 0 10px}
+h2{font:700 13px/1.3 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 0 10px}
+.sub{color:var(--mute);margin:0 0 18px;max-width:62ch}
+.hide{display:none}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+/* sticky top: brand, theme switcher, progress, timer bar */
+.stick{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 6px 20px -12px var(--shadow)}
+@supports (background:color-mix(in srgb,red,blue)){.stick{background:color-mix(in srgb,var(--surface) 90%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}}
+.top{max-width:1180px;margin:0 auto;padding:9px 16px;display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;font:700 17px var(--head);letter-spacing:-.01em;white-space:nowrap}
+.logo{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:var(--accent-ink);background:linear-gradient(135deg,var(--accent),var(--accent2));font:800 18px var(--head);box-shadow:0 4px 12px -4px var(--accent)}
+.topmid{flex:1;text-align:center;color:var(--mute);font-size:13px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prog{height:4px;background:var(--line)}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}
+.tbar{max-width:1180px;margin:0 auto;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font:600 14px var(--sans)}
+.tbar.hide{display:none}
+.tbar.warn{background:var(--bad-soft);color:var(--bad)}
+.tbar b{font:700 17px var(--head);font-variant-numeric:tabular-nums;margin-left:4px}
+.tb{display:flex;gap:8px;flex-wrap:wrap}
+.net{background:var(--warn-soft);color:var(--ink);border-top:1px solid var(--warn-line);padding:7px 16px;text-align:center;font:600 13px var(--sans)}
+.net.hide{display:none}
+/* page grid */
+.wrap{max-width:1180px;margin:0 auto;padding:22px 16px 64px;display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:22px;align-items:start}
+.wrap.solo{grid-template-columns:minmax(0,1fr)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:30px 34px;box-shadow:0 1px 2px var(--shadow),0 18px 40px -22px var(--shadow)}
+/* question ticket */
+.card.qcard{padding:0;display:grid;grid-template-columns:116px minmax(0,1fr);overflow:hidden}
+.qstub{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:24px 8px;color:var(--accent-ink);background:linear-gradient(165deg,var(--accent),var(--accent2));text-align:center}
+.qstub::before,.qstub::after{content:"";position:absolute;right:-10px;width:20px;height:20px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.qstub::before{top:-10px}.qstub::after{bottom:-10px}
+.qlab{font:700 10.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.qnum{font:800 46px/1 var(--head);letter-spacing:-.03em}
+.qof{font:600 12px var(--sans);opacity:.85}
+.qflag{margin-top:10px;font:700 11px var(--sans);background:var(--warn-solid);color:var(--warn-ink);padding:3px 9px;border-radius:999px}
+.qbody{padding:26px 32px 30px;min-width:0;border-left:2px dashed var(--line)}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tag{font:700 10.5px/1 var(--sans);letter-spacing:.05em;text-transform:uppercase;background:var(--accent-soft);color:var(--accent-txt);padding:7px 11px;border-radius:999px}
+.stem{font:600 19px/1.55 var(--sans);margin:0 0 22px}
+.opt{position:relative;display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:13px 16px 13px 13px;margin-bottom:11px;font:500 15px/1.45 var(--sans);cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s,background .12s}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 18px -12px var(--accent)}
+.opt .k{flex:none;width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent-txt);display:grid;place-items:center;font:800 14px var(--head)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .k{background:var(--accent);color:var(--accent-ink)}
+.opt.ok{background:var(--ok-soft);border-color:var(--ok)}
+.opt.ok .k{background:var(--ok);color:var(--ok-soft)}
+.opt.ok::after{content:"✓";margin-left:auto;color:var(--ok);font:800 18px var(--sans)}
+.opt.no{background:var(--bad-soft);border-color:var(--bad)}
+.opt.no .k{background:var(--bad);color:var(--bad-soft)}
+.opt.no::after{content:"✕";margin-left:auto;color:var(--bad);font:800 16px var(--sans)}
+.opt:disabled{cursor:default}
+.why{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 15px;border-radius:0 12px 12px 0;margin:4px 0 16px;font-size:14px}
+.why b{display:block;margin-bottom:4px}
+.why span,.rev small{white-space:pre-line}
+/* buttons */
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.btn{border:0;border-radius:12px;padding:11px 20px;font:700 14px var(--sans);cursor:pointer;color:var(--accent-ink);background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 18px -10px var(--accent);transition:transform .12s,box-shadow .12s}
+.btn:hover:not(:disabled){transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.btn.prev{background:var(--accent-soft);color:var(--accent-txt);box-shadow:none}
+.btn.flag{background:var(--danger);color:var(--danger-ink);box-shadow:none}
+.btn.flag.on{background:var(--warn-solid);color:var(--warn-ink)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 15px;font:700 13px var(--sans);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip.sm{padding:6px 12px;font-size:12px}
+.chip:disabled{opacity:.4;cursor:default}
+.num{width:178px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;font:600 13px var(--sans)}
+.num.pw{width:220px}
+.num::placeholder{color:var(--mute)}
+/* navigator */
+.side{position:sticky;top:calc(var(--sh,64px) + 14px);background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 1px 2px var(--shadow),0 18px 40px -22px var(--shadow)}
+.side h2{text-align:center;margin-bottom:12px}
+.ring{position:relative;width:150px;height:150px;flex:none}
+.ring.sm{width:116px;height:116px;margin:0 auto 6px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.rt{fill:none;stroke:var(--line);stroke-width:10}
+.rp{fill:none;stroke:var(--accent);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .35s}
+.ring.pass .rp{stroke:var(--ok)}.ring.fail .rp{stroke:var(--bad)}
+.ringtxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ringtxt b{font:800 24px/1 var(--head)}
+.rcnt{text-align:center;color:var(--mute);font-size:12px;margin:0 0 12px;min-height:18px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:11.5px;color:var(--mute);margin-bottom:12px}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;background:var(--accent)}
+.legend .f::before{background:var(--warn-line)}.legend .c::before{background:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:16px}
+.cell{position:relative;aspect-ratio:1;border:1.5px solid var(--line);background:var(--surface2);color:var(--mute);border-radius:50%;font:700 11px var(--sans);cursor:pointer;padding:0}
+.cell.a{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-txt)}
+.cell.f{box-shadow:0 0 0 2px var(--warn-line)}
+.cell.f::after{content:"";position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--warn-line);border:1.5px solid var(--surface)}
+.cell.cur{background:var(--ink);border-color:var(--ink);color:var(--surface);box-shadow:0 0 0 3px var(--accent-soft)}
+.submit{width:100%;padding:13px}
+/* start screen */
+.eyebrow{display:inline-block;font:700 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-txt);background:var(--accent-soft);padding:6px 12px;border-radius:999px;margin-bottom:14px}
+.steps{list-style:none;display:flex;gap:10px;flex-wrap:wrap;padding:0;margin:0 0 22px;counter-reset:s}
+.steps li{counter-increment:s;display:flex;align-items:center;gap:9px;color:var(--mute);font-weight:700;font-size:13px}
+.steps li::before{content:counter(s);width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font:800 12px var(--head)}
+.steps li.on{color:var(--ink)}.steps li.on::before{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.steps li.done::before{content:"✓";background:var(--ok);border-color:var(--ok);color:var(--ok-soft)}
+.steps li:not(:last-child)::after{content:"";width:28px;height:2px;background:var(--line);margin-left:4px}
+.drop{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border:2px dashed var(--accent);background:var(--accent-soft);border-radius:18px;padding:22px 24px;margin-bottom:8px;transition:background .15s}
+.drop.over{background:var(--surface2);border-style:solid}
+.drop.done{border-style:solid;border-color:var(--line);background:var(--surface2);padding:14px 18px}
+.dropleft{display:flex;align-items:center;gap:14px;min-width:0}
+.pdfbadge{flex:none;width:48px;height:56px;border-radius:8px 14px 8px 8px;background:var(--surface);border:2px solid var(--accent);color:var(--accent-txt);display:grid;place-items:end center;padding-bottom:6px;font:800 10.5px var(--head);letter-spacing:.02em}
+.droptxt{display:flex;flex-direction:column;min-width:0}
+.droptxt b{font:700 17px var(--head);overflow-wrap:anywhere}
+.droptxt span{color:var(--mute);font-size:13px}
+.sec{margin-bottom:20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px;margin-top:20px}
+.cards>.sec{margin:0;background:var(--surface2);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.note{color:var(--mute);font-size:12.5px;margin:8px 0 0}
+.launch{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:18px;padding:14px 18px;border-radius:16px;background:var(--accent-soft);border:1px solid var(--line)}
+.sum{font-weight:600;color:var(--ink);margin:0;font-size:14px;flex:1;min-width:220px}
+/* results */
+.rhero{display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-bottom:6px}
+.rinfo{flex:1;min-width:240px}
+.rinfo h2{font:800 28px/1.15 var(--head);letter-spacing:-.02em;text-transform:none;color:var(--ink);margin:0 0 6px}
+.rinfo p{margin:0 0 6px}
+.score{font:800 38px/1 var(--head);letter-spacing:-.02em;position:absolute;inset:0;display:grid;place-items:center}
+.pass{color:var(--ok)}.fail{color:var(--bad)}
+.tiles{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.tile{min-width:92px;padding:10px 14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line)}
+.tile b{display:block;font:800 22px/1.1 var(--head)}
+.tile span{font-size:12px;color:var(--mute)}
+.tile.g b{color:var(--ok)}.tile.r b{color:var(--bad)}
+.rev{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0;background:var(--surface)}
+.rev p{margin:0 0 8px;font-weight:600}
+.rev small{color:var(--mute);font-size:12.5px;display:block;margin-top:6px}
+.st{display:inline-block;font:800 10.5px var(--sans);text-transform:uppercase;letter-spacing:.06em;padding:4px 9px;border-radius:999px;margin-right:8px;vertical-align:1px}
+.st.ok{background:var(--ok-soft);color:var(--ok)}.st.no{background:var(--bad-soft);color:var(--bad)}.st.na{background:var(--warn-soft);color:var(--warn)}
+.ro{display:flex;gap:10px;padding:7px 10px;border-radius:10px;margin:4px 0;font-size:13.5px;border:1px solid transparent}
+.ro b{flex:none;width:20px}
+.ro.ok{background:var(--ok-soft);border-color:var(--ok)}.ro.no{background:var(--bad-soft);border-color:var(--bad)}
+.chips+div{margin-top:12px}
+.warn{background:var(--warn-soft);border:1px solid var(--warn-line);border-radius:12px;padding:14px;margin-bottom:14px;color:var(--ink)}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:8px;background:var(--surface)}
+.sinfo{display:flex;flex-direction:column;font-size:12.5px;color:var(--mute);min-width:0}
+.sinfo b{color:var(--ink);font-size:14px;overflow-wrap:anywhere}
+.perm{border:1.5px solid var(--accent);background:var(--surface);border-radius:16px;padding:16px 18px;margin:16px 0}
+.perm h2{margin-bottom:6px}
+.perm .chips,.perm .pwrow{margin-top:10px}
+.pwrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* break / pause overlay */
+.ov{position:fixed;inset:0;z-index:60;background:var(--bg);display:grid;place-items:center;text-align:center;padding:24px}
+.ov.hide{display:none}
+.ov h1{font:800 34px/1.2 var(--head);margin:0 0 8px}
+.ov .sub{max-width:460px;margin:0 auto 10px}
+.big{font:800 60px/1.1 var(--head);font-variant-numeric:tabular-nums;margin:12px 0 22px;color:var(--accent)}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}.side{position:static}.topmid{display:none}.brand{flex:1}}
+@media (max-width:640px){.card{padding:22px 18px;border-radius:18px}.card.qcard{grid-template-columns:1fr;padding:0}.qstub{flex-direction:row;gap:10px;padding:10px 16px;justify-content:flex-start}.qstub::before,.qstub::after{display:none}.qnum{font-size:26px}.qlab{display:none}.qflag{margin:0 0 0 auto}.qbody{padding:20px 18px 24px;border-left:0}h1{font-size:28px}.bname{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* single theme button + dropdown */
+.thmenu{position:relative}
+.thbtn{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);padding:6px 12px 6px 8px;border-radius:999px;font:700 13px var(--sans);cursor:pointer}
+.thbtn svg{width:14px;height:14px;transition:transform .15s}
+.thbtn[aria-expanded="true"]{border-color:var(--accent)}
+.thbtn[aria-expanded="true"] svg{transform:rotate(180deg)}
+.sw{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);display:inline-block;flex:none}
+.thlist{position:absolute;right:0;top:calc(100% + 8px);z-index:80;min-width:250px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px;box-shadow:0 20px 46px -14px var(--shadow),0 2px 6px var(--shadow)}
+.thlist.hide{display:none}
+.th-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:9px 10px;border-radius:11px;font:700 14px var(--sans);cursor:pointer}
+.th-opt:hover,.th-opt:focus-visible{background:var(--accent-soft)}
+.th-opt small{display:block;color:var(--mute);font-weight:500;font-size:12px}
+.th-opt .tick{margin-left:auto;color:var(--accent);font-weight:800;visibility:hidden}
+.th-opt[aria-checked="true"] .tick{visibility:visible}
+@media (max-width:640px){.thbtn .tn{display:none}.thbtn{padding:6px 10px 6px 8px}}
+:root,:root[data-theme="ghost"]{--bg:#efedf7;--surface:#fdfcff;--surface2:#f5f3fb;--ink:#25223b;--mute:#5e5a7a;--line:#dad6ec;--dot:#dcd8ee;--glow:rgba(139,120,230,.22);--accent:#6a58d6;--accent2:#8a5fd0;--accent-ink:#ffffff;--accent-soft:#e9e5fb;--accent-txt:#473aa3;--ok:#1f7a58;--ok-soft:#dcf3ea;--bad:#b02e48;--bad-soft:#fbe5ea;--warn:#7a4d00;--warn-soft:#fff0d2;--warn-line:#e0a21c;--danger:#b02e48;--danger-ink:#ffffff;--warn-solid:#f2b230;--warn-ink:#2b1d00;--shadow:rgba(37,34,59,.14);--ol:#4a3fa8;--sh-solid:rgba(74,63,168,.16);--head:"Fredoka","Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;color-scheme:light}
+:root[data-theme="forest"]{--bg:#e6f0e1;--surface:#fbfdf8;--surface2:#f0f6ec;--ink:#14301f;--mute:#4b6653;--line:#c5d9c4;--dot:#cfe0cb;--glow:rgba(46,125,76,.20);--accent:#2f7d4f;--accent2:#2a7a63;--accent-ink:#ffffff;--accent-soft:#d9ebd6;--accent-txt:#1e5a38;--ok:#1b6e36;--ok-soft:#d4eed9;--bad:#b3342b;--bad-soft:#fbe3df;--warn:#7a4a00;--warn-soft:#fff0cf;--warn-line:#d99208;--danger:#b3342b;--danger-ink:#ffffff;--warn-solid:#f2a413;--warn-ink:#2b1d00;--shadow:rgba(20,48,31,.16);--ol:#2a5a3c;--sh-solid:rgba(42,90,60,.22);--head:"Fredoka","Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;color-scheme:light}
+:root[data-theme="knight"]{--bg:#07080c;--surface:#11141b;--surface2:#171b25;--ink:#ecebe6;--mute:#a3a8b5;--line:#2a3040;--dot:#11141c;--glow:rgba(255,196,0,.10);--accent:#ffc400;--accent2:#ff9f1a;--accent-ink:#0b0a05;--accent-soft:#2a2410;--accent-txt:#ffd54a;--ok:#4ade80;--ok-soft:#0f2e1d;--bad:#ff6b6b;--bad-soft:#3a1618;--warn:#ffa07a;--warn-soft:#3a1a0e;--warn-line:#ff7a45;--danger:#ff6b6b;--danger-ink:#1a0505;--warn-solid:#ff7a45;--warn-ink:#1a0800;--shadow:rgba(0,0,0,.65);--ol:#2a3040;--sh-solid:transparent;--head:"Oswald","Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;color-scheme:dark}
+
+/* theme art layers */
+.deco{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.deco svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.wrap{position:relative;z-index:1}
+.logo svg{width:21px;height:21px}
+.hero{position:relative}
+.hero h1,.hero .sub{max-width:min(62ch,calc(100% - 270px))}
+.heroart{position:absolute;right:2px;top:-10px;width:250px;pointer-events:none}
+.heroart svg{width:100%;height:auto;display:block}
+.qic{display:grid;place-items:center;margin-bottom:8px;color:var(--accent-ink);opacity:.92}
+.qic svg{width:32px;height:32px}
+@media (max-width:900px){.heroart{display:none}.hero h1,.hero .sub{max-width:none}}
+@media (max-width:640px){.qic{display:none}}
+/* Green Forest and Ghost: cartoon outlines with flat offset shadows */
+:root[data-theme="forest"] .card,:root[data-theme="forest"] .side,:root[data-theme="ghost"] .card,:root[data-theme="ghost"] .side{border:2px solid var(--ol);box-shadow:6px 6px 0 var(--sh-solid)}
+:root[data-theme="forest"] .btn:not(.ghost):not(.prev):not(.flag),:root[data-theme="ghost"] .btn:not(.ghost):not(.prev):not(.flag){border:2px solid var(--ol);box-shadow:3px 3px 0 var(--ol)}
+:root[data-theme="forest"] .btn:hover:not(:disabled),:root[data-theme="ghost"] .btn:hover:not(:disabled){transform:translate(-1px,-1px)}
+:root[data-theme="forest"] .stick,:root[data-theme="ghost"] .stick{border-bottom:2px solid var(--ol)}
+:root[data-theme="forest"] .drop,:root[data-theme="ghost"] .drop{border-width:2.5px}
+:root[data-theme="forest"] h1,:root[data-theme="ghost"] h1{font-weight:600;letter-spacing:0}
+:root[data-theme="forest"] .qnum,:root[data-theme="ghost"] .qnum{font-weight:600}
+/* Dark Knight: charcoal, signal yellow, condensed type */
+:root[data-theme="knight"] h1,:root[data-theme="knight"] .rinfo h2,:root[data-theme="knight"] .brand,:root[data-theme="knight"] .ov h1{text-transform:uppercase;letter-spacing:.05em}
+:root[data-theme="knight"] h1{font-weight:700}
+:root[data-theme="knight"] .qstub{background:linear-gradient(165deg,#ffc400,#e08a00)}
+:root[data-theme="knight"] .card,:root[data-theme="knight"] .side{border:1px solid var(--ol);box-shadow:inset 0 1px 0 rgba(255,196,0,.10),0 26px 60px -26px #000}
+:root[data-theme="knight"] .stick{border-bottom-color:rgba(255,196,0,.4)}
+:root[data-theme="knight"] .prog i{box-shadow:0 0 10px rgba(255,196,0,.6)}
+:root[data-theme="knight"] .opt:hover:not(:disabled){border-color:var(--accent);box-shadow:0 0 18px -6px var(--accent)}
+:root[data-theme="knight"] .btn{box-shadow:0 8px 20px -10px var(--accent)}
+:root[data-theme="knight"] .btn.ghost,:root[data-theme="knight"] .btn.prev,:root[data-theme="knight"] .btn.flag{box-shadow:none}
+.sw.s-forest{background:linear-gradient(135deg,#e6f0e1 50%,#2f7d4f 50%)}
+.sw.s-knight{background:linear-gradient(135deg,#07080c 50%,#ffc400 50%)}
+.sw.s-ghost{background:linear-gradient(135deg,#efedf7 50%,#6a58d6 50%)}
+.logbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);padding:6px 13px 6px 10px;border-radius:999px;font:700 13px var(--sans);cursor:pointer}
+.logbtn svg{width:16px;height:16px}
+.logbtn:disabled{opacity:.4;cursor:default}
+.logbtn:hover:not(:disabled){border-color:var(--accent)}
+.lrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin-bottom:10px;background:var(--surface)}
+.lscore{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;font:800 17px var(--head);border:3px solid var(--line)}
+.lscore.pass{border-color:var(--ok);color:var(--ok)}.lscore.fail{border-color:var(--bad);color:var(--bad)}
+.linfo{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:12.5px;color:var(--mute)}
+.linfo b{color:var(--ink);font-size:15px;overflow-wrap:anywhere}
+.lcounts{display:flex;gap:12px;flex-wrap:wrap;font-weight:600;color:var(--ink)}
+.flbox{margin-top:24px}
+details.fl{border:1px solid var(--line);border-radius:14px;padding:10px 16px;margin:10px 0;background:var(--surface2)}
+details.fl>summary{cursor:pointer;font-weight:700;padding:4px 0}
+.dlg{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(0,0,0,.5);padding:20px}
+.dlgbox{background:var(--surface);color:var(--ink);border:1.5px solid var(--accent);border-radius:18px;padding:22px;max-width:400px;width:100%;display:flex;flex-direction:column;gap:10px;box-shadow:0 24px 60px -20px #000}
+.dlgbox .num{width:100%}
+.dlgbox h2{margin:0}
+@media (max-width:640px){.logbtn .tn{display:none}.lrow{grid-template-columns:auto minmax(0,1fr)}.lrow .chips{grid-column:1/-1}}
+button.tile{font:inherit;color:inherit;text-align:left;cursor:pointer}
+button.tile:hover{border-color:var(--accent)}
+button.tile[aria-expanded="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-soft)}
+.tilelist{border:1.5px solid var(--accent);border-radius:16px;padding:14px 16px;margin:14px 0 18px;background:var(--surface2)}
+.tlhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tlhead h2{margin:0}
+.card.authcard{padding:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);overflow:hidden;max-width:940px;margin:28px auto}
+.authside{background:linear-gradient(160deg,var(--accent),var(--accent2));color:var(--accent-ink);padding:34px 30px;display:flex;flex-direction:column;gap:14px}
+.authside h2{color:inherit;font:800 28px/1.15 var(--head);text-transform:none;letter-spacing:-.01em;margin:0}
+.authart{background:rgba(255,255,255,.16);border-radius:18px;padding:10px}
+.authart svg{width:100%;height:auto;display:block}
+.authlist{margin:0;padding-left:18px;font-weight:600;font-size:13.5px;line-height:1.5}
+.authform{padding:34px 36px;min-width:0}
+.fld{display:block;margin-bottom:12px}
+.fld span{display:block;font:700 12px var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
+.fld input{width:100%;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:11px 14px;font:600 15px var(--sans)}
+.keep{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;margin:6px 0 10px}
+.keep input{width:18px;height:18px;accent-color:var(--accent)}
+.avatar{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--accent-ink);font:800 12px var(--head)}
+.uhead{margin:0;padding:8px 10px 6px;font-size:12px;font-weight:700;color:var(--mute);overflow-wrap:anywhere}
+@media (max-width:760px){.card.authcard{grid-template-columns:1fr;margin:8px auto}.authside{padding:22px}.authart{display:none}.authform{padding:24px 20px}}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:12px 18px;border-radius:12px;border:1.5px solid #dadce0;background:#fff;color:#3c4043;font:600 15px var(--sans);cursor:pointer;box-shadow:0 1px 2px rgba(60,64,67,.25)}
+.gbtn:hover:not(:disabled){background:#f8f9fa;box-shadow:0 1px 4px rgba(60,64,67,.35)}
+.gbtn:disabled{opacity:.6;cursor:default}
+.gbtn svg{width:20px;height:20px;flex:none}
+.sync{width:9px;height:9px;border-radius:50%;background:var(--mute);display:inline-block;flex:none}
+.sync.idle,.sync.synced{background:var(--ok)}
+.sync.syncing{background:var(--warn-solid);animation:pulse 1s infinite}
+.sync.error{background:var(--bad)}
+@keyframes pulse{50%{opacity:.3}}
+.avatar{overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.onl{font:800 10px var(--sans);font-style:normal;letter-spacing:.08em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);padding:2px 7px;border-radius:999px;margin-left:8px;vertical-align:2px}
+.spin{width:36px;height:36px;border:4px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.setup{padding-left:20px;margin:0 0 6px;line-height:1.6}
+@media (prefers-reduced-motion:reduce){.sync.syncing,.spin{animation:none}}
+</style>
+</head>
+<body>
+<div class="deco" id="deco" aria-hidden="true"></div>
+<div class="stick" id="stick">
+  <header class="top">
+    <div class="brand"><span class="logo" aria-hidden="true"></span><span class="bname">Quiz Studio<em class="onl">Online</em></span></div>
+    <div class="topmid" id="topmid"></div>
+    <button class="logbtn" id="logbtn" title="Open your Exam Log"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6V3Zm0 0v18M9.500 8h6M9.500 12h6M9.500 16h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tn">Exam Log</span></button>
+    <div class="thmenu hide" id="userwrap">
+      <button class="thbtn" id="userbtn" aria-haspopup="menu" aria-expanded="false" aria-controls="userlist" aria-label="Account"><span class="sync idle" id="sync"></span><span class="avatar" id="uav">?</span><span class="tn" id="uname"></span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="thlist hide" id="userlist" role="menu" aria-label="Account menu"></div>
+    </div>
+    <div class="thmenu" id="thmenu">
+      <button class="thbtn" id="thbtn" aria-haspopup="menu" aria-expanded="false" aria-controls="thlist" aria-label="Theme: Ghost. Change theme"><i class="sw s-ghost" id="thsw"></i><span class="tn" id="thname">Ghost</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="thlist hide" id="thlist" role="menu" aria-label="Choose a theme"></div>
+    </div>
+  </header>
+  <div class="prog"><i id="fill"></i></div>
+  <div class="tbar hide" id="tbar"><span id="tbtns" class="tb"></span><span id="ttime" role="timer">⏱ Time left <b id="tleft">0:00:00</b></span></div>
+  <div class="net hide" id="net" role="status"></div>
+</div>
+<div class="ov hide" id="ov"><div><h1 id="ovt"></h1><p class="sub" id="ovs"></p><div class="big" id="ovtime"></div><button class="btn" id="ovb"></button></div></div>
+<div class="wrap" id="wrap">
+  <div class="card" id="main"></div>
+  <aside class="side hide" id="side">
+    <h2>Navigator</h2>
+    <div class="ring sm"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="rt" cx="60" cy="60" r="52"/><circle class="rp" id="rprog" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"/></svg><div class="ringtxt"><b id="rpct">0%</b></div></div>
+    <p class="rcnt" id="rcnt"></p>
+    <div class="legend"><span>Answered</span><span class="f">Flagged</span><span class="c">Current</span></div>
+    <div class="grid" id="grid"></div>
+    <button class="btn submit" id="sub">Submit Exam</button>
+    <button class="btn ghost submit" id="savebtn" style="margin-top:8px">Save &amp; exit</button>
+    <p class="note" id="savemsg"></p>
+  </aside>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script>
+const L = "ABCDE";
+const $ = id => document.getElementById(id);
+const main = $("main");
+// ---------- cartoon-sketch art for each theme ----------
+const rng = seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const WOB = id => '<filter id="' + id + '" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3"/></filter>';
+const SVG = (vb, inner, par) => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + vb + '"' + (par ? ' preserveAspectRatio="' + par + '"' : '') + ' aria-hidden="true">' + inner + '</svg>';
+const cloudP = (x, y, s, f, st) => `<path transform="translate(${x} ${y}) scale(${s})" d="M-60 0C-82 0-82-30-50-30-50-54-8-58 2-36 22-60 64-46 56-22 82-22 84 0 60 0Z" fill="${f}" stroke="${st}" stroke-width="3"/>`;
+const SCENES = {
+  forest(){
+    const pine = (x, y, s, a, b) => `<g transform="translate(${x} ${y}) scale(${s})"><rect x="-4" y="-16" width="8" height="16" fill="#7a5233" stroke="#4a2f19" stroke-width="2"/><path d="M-36-14L0-72 36-14Z" fill="${a}" stroke="#1b4d33" stroke-width="2.4"/><path d="M-30-44L0-98 30-44Z" fill="${b}" stroke="#1b4d33" stroke-width="2.4"/><path d="M-23-72L0-122 23-72Z" fill="${a}" stroke="#1b4d33" stroke-width="2.4"/></g>`;
+    const oak = (x, y, s, c) => { const k = `fill="${c}" stroke="#1b4d33" stroke-width="2.4"`; return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-6 0L-4-44 4-44 6 0Z" fill="#7a5233" stroke="#4a2f19" stroke-width="2"/><circle cx="-22" cy="-56" r="22" ${k}/><circle cx="22" cy="-56" r="22" ${k}/><circle cx="0" cy="-78" r="26" ${k}/><circle cx="0" cy="-54" r="24" ${k}/></g>`; };
+    const shroom = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-6 0Q-7-14-4-16L4-16Q7-14 6 0Z" fill="#fbf1dc" stroke="#6b4a2f" stroke-width="2"/><path d="M-22-16Q-20-40 0-40 20-40 22-16 0-10-22-16Z" fill="#e0624d" stroke="#7a2a20" stroke-width="2.2"/><circle cx="-9" cy="-28" r="3" fill="#fff"/><circle cx="6" cy="-31" r="3.4" fill="#fff"/><circle cx="12" cy="-23" r="2.4" fill="#fff"/></g>`;
+    const tuft = (x, y) => `<path d="M${x} ${y}q-7-16-12-24M${x} ${y}q0-20 2-30M${x} ${y}q7-14 14-22" fill="none" stroke="#2f7d4f" stroke-width="3"/>`;
+    const r = rng(11); let ff = "", rays = "", birds = "";
+    for (let i = 0; i < 16; i++){ const x = r() * 1440 | 0, y = 560 + r() * 240 | 0; ff += `<circle cx="${x}" cy="${y}" r="9" fill="#fff6a8" opacity=".25"/><circle cx="${x}" cy="${y}" r="3" fill="#fff3a0"/>`; }
+    for (let k = 0; k < 12; k++){ const a = k * Math.PI / 6; rays += `<path d="M${(1385 + Math.cos(a) * 58).toFixed(0)} ${(120 + Math.sin(a) * 58).toFixed(0)}L${(1385 + Math.cos(a) * 76).toFixed(0)} ${(120 + Math.sin(a) * 76).toFixed(0)}" stroke="#c7922a" stroke-width="3" fill="none"/>`; }
+    [[30, 330], [100, 365], [1330, 400]].forEach(([x, y]) => { birds += `<path d="M${x} ${y}q8-10 16 0 8-10 16 0" fill="none" stroke="#2a5a3c" stroke-width="3"/>`; });
+    const hill = (f, d) => `<path d="${d}" fill="${f}" stroke="#4f8a55" stroke-width="2.5"/>`;
+    return SVG("0 0 1440 900", `<defs>${WOB("wf")}</defs>
+<g filter="url(#wf)" stroke-linecap="round" stroke-linejoin="round"><circle cx="1385" cy="120" r="44" fill="#ffe28a" stroke="#c7922a" stroke-width="3"/>${rays}${cloudP(40, 190, 1, "#fff", "#9db99a")}${cloudP(1370, 300, .8, "#fff", "#9db99a")}${cloudP(300, 100, .6, "#fff", "#9db99a")}${birds}</g>
+${hill("#b7d5ae", "M0 700C220 620 420 670 640 650S1050 590 1240 650 1400 670 1440 660L1440 900 0 900Z")}
+<g filter="url(#wf)" stroke-linecap="round" stroke-linejoin="round">${pine(60, 712, .9, "#3a8f5c", "#2f7d4f")}${pine(150, 700, 1.1, "#2f7d4f", "#3a8f5c")}${pine(262, 716, .8, "#3a8f5c", "#2f7d4f")}${pine(1170, 668, 1, "#2f7d4f", "#3a8f5c")}${pine(1290, 676, .85, "#3a8f5c", "#2f7d4f")}${pine(1390, 684, 1.15, "#2f7d4f", "#3a8f5c")}${oak(700, 668, .45, "#6fb06f")}${pine(560, 690, .45, "#3a8f5c", "#2f7d4f")}</g>
+${hill("#9ccb94", "M0 760C200 700 380 740 600 720S980 690 1180 735 1360 750 1440 735L1440 900 0 900Z")}
+<g filter="url(#wf)" stroke-linecap="round" stroke-linejoin="round">${oak(34, 768, 1.05, "#5aa468")}${oak(214, 774, .9, "#6fb06f")}${pine(340, 780, 1.25, "#2f7d4f", "#3a8f5c")}${oak(1120, 748, 1, "#5aa468")}${oak(1262, 760, 1.2, "#6fb06f")}${pine(1400, 772, 1.3, "#2f7d4f", "#3a8f5c")}${oak(900, 735, .5, "#6fb06f")}</g>
+${hill("#7ab877", "M0 830C260 800 500 835 760 815S1180 800 1440 828L1440 900 0 900Z")}
+<g filter="url(#wf)" stroke-linecap="round" stroke-linejoin="round">${shroom(96, 862, 1.2)}${shroom(132, 872, .8)}${shroom(396, 866, 1)}${shroom(1060, 864, 1.1)}${shroom(1336, 868, 1.3)}${[20, 170, 300, 470, 640, 800, 960, 1180, 1250, 1420].map(x => tuft(x, 880 + (x % 3) * 4)).join("")}${ff}</g>`, "xMidYMax slice");
+  },
+  knight(){
+    const r = rng(7); let stars = "";
+    for (let i = 0; i < 46; i++){ const x = r() * 1440 | 0, y = r() * 430 | 0; stars += `<circle cx="${x}" cy="${y}" r="${r() < .2 ? 2.2 : 1.2}" fill="#fff" opacity="${(.3 + r() * .5).toFixed(2)}"/>`; }
+    const sky = (color, minH, maxH, seed, lit) => {
+      const q = rng(seed); let x = -20, out = "";
+      while (x < 1460){
+        const w = 44 + q() * 52, hh = minH + q() * (maxH - minH), y = 900 - hh;
+        out += `<rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="${w.toFixed(0)}" height="${hh.toFixed(0)}" fill="${color}"/>`;
+        const t = q();
+        if (t > .78) out += `<path d="M${x.toFixed(0)} ${y.toFixed(0)}L${(x + w / 2).toFixed(0)} ${(y - 34 - q() * 30).toFixed(0)} ${(x + w).toFixed(0)} ${y.toFixed(0)}Z" fill="${color}"/>`;
+        else if (t > .6) out += `<rect x="${(x + w * .3).toFixed(0)}" y="${(y - 18).toFixed(0)}" width="${(w * .4).toFixed(0)}" height="18" fill="${color}"/>`;
+        for (let wy = y + 14; wy < 860; wy += 22) for (let wx = x + 8; wx < x + w - 10; wx += 16) if (q() < lit) out += `<rect x="${wx.toFixed(0)}" y="${wy.toFixed(0)}" width="7" height="10" fill="#ffc400" opacity="${(.5 + q() * .45).toFixed(2)}"/>`;
+        x += w + q() * 8;
+      }
+      return out;
+    };
+    const bat = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 2C-10-10-30-12-46-2-36-2-32 4-30 12-24 5-16 6-12 13-8 7-4 8 0 12 4 8 8 7 12 13 16 6 24 5 30 12 32 4 36-2 46-2 30-12 10-10 0 2Z" fill="#020204" stroke="#3a4152" stroke-width="2"/><path d="M-5 0L-4-9 0-3 4-9 5 0Z" fill="#020204" stroke="#3a4152" stroke-width="2"/></g>`;
+    return SVG("0 0 1440 900", `<defs>${WOB("wk")}<radialGradient id="kg"><stop offset="0" stop-color="#fff6c8" stop-opacity=".55"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></radialGradient><linearGradient id="kb" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ffc400" stop-opacity=".42"/><stop offset="1" stop-color="#ffc400" stop-opacity="0"/></linearGradient><linearGradient id="kf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#07080c" stop-opacity="0"/><stop offset="1" stop-color="#07080c" stop-opacity=".9"/></linearGradient></defs>
+${stars}<circle cx="1220" cy="150" r="150" fill="url(#kg)"/>
+<g filter="url(#wk)"><circle cx="1220" cy="150" r="76" fill="#f4efd8" stroke="#cfc6a0" stroke-width="3"/><circle cx="1196" cy="130" r="14" fill="#e3dcb9"/><circle cx="1246" cy="176" r="10" fill="#e3dcb9"/><circle cx="1230" cy="108" r="7" fill="#e3dcb9"/><path d="M1120 190C1160 170 1210 184 1250 168S1330 176 1350 196L1350 210 1120 210Z" fill="#1a1e29" opacity=".85"/>${bat(1090, 112, 1)}${bat(1330, 70, .8)}${bat(980, 270, .7)}${bat(170, 190, 1.2)}${bat(380, 120, .6)}</g>
+<polygon points="860,640 690,0 1020,0" fill="url(#kb)"/>
+${sky("#10131b", 150, 330, 3, .12)}
+<rect x="820" y="640" width="80" height="260" fill="#05060a"/><rect x="850" y="627" width="20" height="13" fill="#2a3040"/><ellipse cx="860" cy="627" rx="15" ry="5" fill="#ffd54a"/>
+${sky("#05060a", 70, 220, 9, .1)}
+<g filter="url(#wk)"><rect x="236" y="500" width="48" height="400" fill="#05060a"/><path d="M230 500L260 410 290 500Z" fill="#05060a"/><circle cx="260" cy="548" r="14" fill="#ffc400" opacity=".9"/><path d="M260 548V538M260 548L268 552" stroke="#05060a" stroke-width="2.5"/></g>
+<rect x="0" y="760" width="1440" height="140" fill="url(#kf)"/>`, "xMidYMax slice");
+  },
+  ghost(){
+    const ghost = (x, y, s, rot, face) => {
+      const ol = `stroke="#4a3fa8" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"`;
+      const faces = [
+        `<ellipse cx="-14" cy="-16" rx="5" ry="7" fill="#25223b"/><ellipse cx="14" cy="-16" rx="5" ry="7" fill="#25223b"/><path d="M-8 2Q0 11 8 2" fill="none" stroke="#25223b" stroke-width="3" stroke-linecap="round"/>`,
+        `<path d="M-20-16Q-14-10-8-16M8-16Q14-10 20-16" fill="none" stroke="#25223b" stroke-width="3.2" stroke-linecap="round"/><ellipse cx="0" cy="4" rx="4" ry="5" fill="#25223b"/>`,
+        `<circle cx="-14" cy="-16" r="6" fill="#25223b"/><circle cx="14" cy="-16" r="6" fill="#25223b"/><circle cx="-12" cy="-18" r="2" fill="#fff"/><circle cx="16" cy="-18" r="2" fill="#fff"/><ellipse cx="0" cy="6" rx="5" ry="6" fill="#25223b"/>`];
+      return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})"><path d="M-40 40C-47-38-30-70 0-70 30-70 47-38 40 40L40 64C32 55 26 55 20 64 14 55 6 55 0 64-6 55-14 55-20 64-26 55-32 55-40 64Z" fill="#fff" ${ol}/><path d="M-32 28C-35-18-26-50-8-60" fill="none" stroke="#dcd6f8" stroke-width="5" stroke-linecap="round"/><path d="M-40 8Q-60 0-58-16M40 8Q60 0 58-16" fill="none" ${ol}/>${faces[face]}<circle cx="-27" cy="-2" r="6" fill="#ffb3c6" opacity=".85"/><circle cx="27" cy="-2" r="6" fill="#ffb3c6" opacity=".85"/></g>`;
+    };
+    const spark = (x, y, s) => `<path transform="translate(${x} ${y}) scale(${s})" d="M0-12L3-3 12 0 3 3 0 12-3 3-12 0-3-3Z" fill="#ffd966" stroke="#c7922a" stroke-width="1.6" stroke-linejoin="round"/>`;
+    return SVG("0 0 1440 900", `<defs>${WOB("wg")}</defs>
+<g filter="url(#wg)" stroke-linecap="round" stroke-linejoin="round">${cloudP(220, 140, 1.1, "#fff", "#b9b2e8")}${cloudP(1010, 120, .8, "#fff", "#b9b2e8")}${cloudP(700, 220, .55, "#fff", "#b9b2e8")}
+<path d="M1280 60a60 60 0 1 0 44 104 48 48 0 1 1-44-104Z" fill="#fff3c4" stroke="#c7922a" stroke-width="3"/><circle cx="1292" cy="118" r="3" fill="#25223b"/><path d="M1288 132Q1294 138 1300 132" fill="none" stroke="#25223b" stroke-width="2.6"/>
+${spark(120, 330, 1)}${spark(1180, 330, .8)}${spark(420, 90, .7)}${spark(1380, 420, 1)}${spark(60, 560, .7)}${spark(1330, 700, .8)}${spark(300, 700, .6)}
+${ghost(110, 250, 1.1, -8, 0)}${ghost(1340, 250, 1.3, 9, 1)}${ghost(1250, 560, .85, -6, 2)}${ghost(170, 600, 1.0, 8, 0)}${ghost(60, 800, .7, -4, 1)}${ghost(1400, 820, .8, 6, 0)}</g>
+<path d="M0 800C240 760 480 810 720 790S1200 760 1440 800L1440 900 0 900Z" fill="#ddd7f4" stroke="#b9b2e8" stroke-width="3"/><path d="M0 850C300 820 560 868 820 846S1250 826 1440 852L1440 900 0 900Z" fill="#cfc7ee" stroke="#b9b2e8" stroke-width="3"/>`, "xMidYMax slice");
+  }
+};
+const ICON = {
+  forest: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4C10 4 4 10 4 17c0 1 .2 2 .5 3 1 .3 2 .5 3 .5 7 0 13-6 13-16.5Z" fill="currentColor"/><path d="M5 20c3-6 7-10 12-13" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  knight: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7 10.6 4 9.6 7C7.4 5.6 4.6 5.4 2 7.4c1.6.5 2.2 2 2.2 3.4 1.4-1 2.8-1 3.8.4C9 10 10.4 10.2 12 12c1.6-1.8 3-2 4-1.4 1-1.4 2.4-1.4 3.8-.4 0-1.4.6-2.9 2.2-3.4-2.6-2-5.4-1.8-7.6-.4L13.4 4Z" fill="currentColor"/></svg>',
+  ghost: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5 21V11a7 7 0 0 1 14 0v10l-2.3-1.8L14.5 21 12 19.2 9.5 21 7.3 19.2ZM8.6 11a1.1 1.6 0 1 0 .01 0ZM14.6 11a1.1 1.6 0 1 0 .01 0Z" fill="currentColor"/></svg>'
+};
+const HERO = {
+  forest: SVG("0 0 240 200", `<defs>${WOB("wh1")}</defs><g filter="url(#wh1)" stroke-linecap="round" stroke-linejoin="round"><path d="M6 152Q120 128 236 148" fill="none" stroke="#6b4a2f" stroke-width="12"/><path d="M30 150q-20-22-4-36 24 6 4 36Z" fill="#5aa468" stroke="#1b4d33" stroke-width="2.4"/><path d="M206 146q16-20 4-34-22 6-4 34Z" fill="#6fb06f" stroke="#1b4d33" stroke-width="2.4"/><ellipse cx="124" cy="100" rx="46" ry="54" fill="#c79a66" stroke="#5b3d22" stroke-width="3"/><ellipse cx="124" cy="116" rx="28" ry="34" fill="#f3dfbf" stroke="#5b3d22" stroke-width="2.4"/><path d="M110 108q4 5 8 0M124 120q4 5 8 0M112 128q4 5 8 0" fill="none" stroke="#b98a5a" stroke-width="2.4"/><path d="M80 94Q58 120 82 146 94 122 90 102Z" fill="#a9794a" stroke="#5b3d22" stroke-width="2.4"/><path d="M168 94Q190 120 166 146 154 122 158 102Z" fill="#a9794a" stroke="#5b3d22" stroke-width="2.4"/><circle cx="108" cy="76" r="17" fill="#fff" stroke="#5b3d22" stroke-width="3"/><circle cx="140" cy="76" r="17" fill="#fff" stroke="#5b3d22" stroke-width="3"/><circle cx="111" cy="78" r="7" fill="#25140a"/><circle cx="137" cy="78" r="7" fill="#25140a"/><circle cx="113" cy="75" r="2.2" fill="#fff"/><circle cx="139" cy="75" r="2.2" fill="#fff"/><path d="M124 84L117 95 124 103 131 95Z" fill="#f2a413" stroke="#7a4a00" stroke-width="2.4"/><path d="M92 52L124 38 156 52 124 66Z" fill="#25302a" stroke="#14301f" stroke-width="2.6"/><path d="M156 52v16M156 68l-4 6" stroke="#f2a413" stroke-width="3" fill="none"/><path d="M110 150l-4 8M110 150l2 9M110 150l-9 5M138 150l4 8M138 150l-2 9M138 150l9 5" stroke="#f2a413" stroke-width="3" fill="none"/><g transform="translate(40 150)"><path d="M-6 0Q-7-12-4-14L4-14Q7-12 6 0Z" fill="#fbf1dc" stroke="#6b4a2f" stroke-width="2"/><path d="M-18-14Q-16-34 0-34 16-34 18-14 0-9-18-14Z" fill="#e0624d" stroke="#7a2a20" stroke-width="2.2"/><circle cx="-6" cy="-24" r="2.6" fill="#fff"/><circle cx="6" cy="-26" r="3" fill="#fff"/></g></g>`),
+  knight: SVG("0 0 240 200", `<defs>${WOB("wh2")}<radialGradient id="hg"><stop offset="0" stop-color="#fff6c8" stop-opacity=".5"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></radialGradient></defs><circle cx="168" cy="70" r="70" fill="url(#hg)"/><g filter="url(#wh2)" stroke-linecap="round" stroke-linejoin="round"><circle cx="168" cy="70" r="44" fill="#f4efd8" stroke="#cfc6a0" stroke-width="3"/><circle cx="154" cy="58" r="8" fill="#e3dcb9"/><circle cx="182" cy="84" r="6" fill="#e3dcb9"/><g id="bw"><path d="M100 110C74 84 42 88 14 106 32 106 38 118 38 132 50 118 62 118 72 130 80 120 90 120 100 132Z" fill="#05060a" stroke="#4a5266" stroke-width="3"/></g><g transform="translate(240 0) scale(-1 1)"><path d="M100 110C74 84 42 88 14 106 32 106 38 118 38 132 50 118 62 118 72 130 80 120 90 120 100 132Z" fill="#05060a" stroke="#4a5266" stroke-width="3"/></g><ellipse cx="120" cy="116" rx="24" ry="30" fill="#0b0d13" stroke="#4a5266" stroke-width="3"/><circle cx="120" cy="88" r="21" fill="#0b0d13" stroke="#4a5266" stroke-width="3"/><path d="M103 76L98 52 116 68ZM137 76L142 52 124 68Z" fill="#0b0d13" stroke="#4a5266" stroke-width="3"/><ellipse cx="112" cy="88" rx="5" ry="6.5" fill="#ffc400"/><ellipse cx="128" cy="88" rx="5" ry="6.5" fill="#ffc400"/><circle cx="113" cy="87" r="2" fill="#05060a"/><circle cx="129" cy="87" r="2" fill="#05060a"/><path d="M114 99L117 106 120 99 123 106 126 99" fill="#fff" stroke="#fff" stroke-width="1.5"/><path d="M114 144v14M126 144v14" stroke="#4a5266" stroke-width="3"/></g>`),
+  ghost: SVG("0 0 240 200", `<defs>${WOB("wh3")}</defs><g filter="url(#wh3)" stroke-linecap="round" stroke-linejoin="round"><path d="M70 150C60 70 80 28 120 28 160 28 180 70 170 150L170 176C160 166 152 166 145 176 138 166 128 166 120 176 112 166 102 166 95 176 88 166 80 166 70 176Z" fill="#fff" stroke="#4a3fa8" stroke-width="4"/><path d="M80 130C76 76 90 46 108 38" fill="none" stroke="#dcd6f8" stroke-width="7"/><ellipse cx="102" cy="84" rx="7" ry="10" fill="#25223b"/><ellipse cx="138" cy="84" rx="7" ry="10" fill="#25223b"/><circle cx="104" cy="80" r="2.6" fill="#fff"/><circle cx="140" cy="80" r="2.6" fill="#fff"/><circle cx="86" cy="104" r="8" fill="#ffb3c6" opacity=".9"/><circle cx="154" cy="104" r="8" fill="#ffb3c6" opacity=".9"/><path d="M110 108Q120 120 130 108" fill="none" stroke="#25223b" stroke-width="4"/><path d="M72 112Q46 112 44 92" fill="none" stroke="#4a3fa8" stroke-width="4"/><g transform="rotate(-9 190 80)"><rect x="150" y="30" width="74" height="96" rx="6" fill="#fff" stroke="#4a3fa8" stroke-width="3.4"/><path d="M162 54h50M162 68h50M162 82h34" stroke="#b9b2e8" stroke-width="4"/><path d="M168 106l9 9 20-22" fill="none" stroke="#1f7a58" stroke-width="6"/></g><path d="M168 118Q190 128 200 112" fill="none" stroke="#4a3fa8" stroke-width="4"/><path d="M24 40l3 8 8 3-8 3-3 8-3-8-8-3 8-3Z" fill="#ffd966" stroke="#c7922a" stroke-width="2"/><path d="M214 160l2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#ffd966" stroke="#c7922a" stroke-width="2"/></g>`)
+};
+const sceneCache = {};
+const curTheme = () => document.documentElement.getAttribute("data-theme");
+const THEMES = [["forest","Green Forest","Sketchy woodland green"],["knight","Dark Knight","Moody city at night"],["ghost","Ghost","Cute, light and airy"]];
+const THEME_BG = {forest: "#e6f0e1", knight: "#07080c", ghost: "#efedf7"};
+function setTheme(t, save){
+  if (!THEME_BG[t]) t = "ghost";
+  const info = THEMES.find(x => x[0] === t);
+  document.documentElement.setAttribute("data-theme", t);
+  $("thsw").className = "sw s-" + t; $("thname").textContent = info[1];
+  $("thbtn").setAttribute("aria-label", "Theme: " + info[1] + ". Change theme");
+  document.querySelectorAll(".th-opt").forEach(b => b.setAttribute("aria-checked", String(b.dataset.t === t)));
+  $("deco").innerHTML = sceneCache[t] || (sceneCache[t] = SCENES[t]());
+  document.querySelectorAll(".logo,.qic").forEach(n => { n.innerHTML = ICON[t]; });
+  document.querySelectorAll(".heroart,.authart").forEach(n => { n.innerHTML = HERO[t]; });
+  let m = document.querySelector('meta[name="theme-color"]');
+  if (!m){ m = document.createElement("meta"); m.name = "theme-color"; document.head.appendChild(m); }
+  m.content = THEME_BG[t];
+  if (save){ try { localStorage.setItem("pdfquiz:v1:theme", t); } catch (e) {} }
+}
+function closeThemeMenu(){ $("thlist").classList.add("hide"); $("thbtn").setAttribute("aria-expanded", "false"); }
+function openThemeMenu(){
+  $("thlist").classList.remove("hide"); $("thbtn").setAttribute("aria-expanded", "true");
+  const cur = $("thlist").querySelector('[aria-checked="true"]') || $("thlist").firstChild; if (cur) cur.focus();
+}
+THEMES.forEach(([k, name, desc]) => {
+  const b = el("button","th-opt"), tx = el("span",""), sm = el("small","",desc);
+  b.setAttribute("role","menuitemradio"); b.dataset.t = k;
+  tx.append(document.createTextNode(name), sm);
+  b.append(el("i","sw s-" + k), tx, el("span","tick","✓"));
+  b.onclick = () => { setTheme(k, true); closeThemeMenu(); $("thbtn").focus(); };
+  $("thlist").appendChild(b);
+});
+$("thbtn").onclick = e => { e.stopPropagation(); if ($("thlist").classList.contains("hide")) openThemeMenu(); else closeThemeMenu(); };
+document.addEventListener("click", e => { if (!$("thmenu").contains(e.target)) closeThemeMenu(); });
+document.addEventListener("keydown", e => {
+  if ($("thlist").classList.contains("hide")) return;
+  if (e.key === "Escape"){ closeThemeMenu(); $("thbtn").focus(); }
+  else if (e.key === "ArrowDown" || e.key === "ArrowUp"){
+    e.preventDefault(); const items = Array.from($("thlist").children); let i = items.indexOf(document.activeElement);
+    i = e.key === "ArrowDown" ? (i + 1) % items.length : (i - 1 + items.length) % items.length; items[i].focus();
+  }
+});
+setTheme(curTheme() || "ghost", false);
+if (window.ResizeObserver) new ResizeObserver(() => document.documentElement.style.setProperty("--sh", $("stick").offsetHeight + "px")).observe($("stick"));
+let cfg = {count:100, start:1, mode:"exam", order:"original", opts:"keep", timer:"off", mpq:2.4, breaks:0, breakMin:10, emerg:"off"};
+let qs = [], ans = [], flags = [], i = 0, view = "start";
+
+function el(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text !== undefined) e.textContent = text; return e; }
+function shuffle(a){ a = a.slice(); for(let j=a.length-1;j>0;j--){const k=Math.floor(Math.random()*(j+1));[a[j],a[k]]=[a[k],a[j]];} return a; }
+
+function chips(key, items){
+  const box = el("div","chips");
+  items.forEach(([v,label]) => {
+    const b = el("button","chip",label);
+    b.dataset.key = key; b.dataset.val = v;
+    b.setAttribute("aria-pressed", cfg[key] === v);
+    b.onclick = () => { cfg[key] = v; syncStart(); };
+    box.appendChild(b);
+  });
+  return box;
+}
+function section(title, node, note){
+  const s = el("div","sec"); s.appendChild(el("h2","",title)); s.appendChild(node);
+  if(note) s.appendChild(el("p","note",note));
+  return s;
+}
+
+function tidy(s){ return s.replace(/\s*\n\s*/g," ").replace(/\s+/g," ").trim(); }
+function fixQuotes(s){
+  return s.replace(/(\w)'(\w)/g,"$1’$2").replace(/"([^"]*)"/g,"“$1”").replace(/(\w)'(\s)/g,"$1’$2").replace(/(^|\s)'(\w)/g,"$1‘$2");
+}
+function categorize(q, opts, ans){
+  const o = opts.map(x=>x.trim()), ctx = q;
+  if (/HCPCS/.test(ctx) || o.every(x=>/^[A-V]\d{4}$/.test(x))) return "HCPCS Level II";
+  if (/ICD-10/.test(ctx) || o.every(x=>/^[A-TV-Z]\d{2}(\.\d+)?$/.test(x))) return "ICD-10-CM";
+  if (o.every(x=>/^\d{5}$/.test(x))){
+    const n = parseInt(o[ans],10);
+    if (n<=1999) return "CPT Anesthesia";
+    if (n<=69999) return "CPT Surgery";
+    if (n<=79999) return "CPT Radiology";
+    if (n<=89999) return "CPT Pathology & Lab";
+    if (n>=99202 && n<=99499) return "CPT E/M";
+    return "CPT Medicine";
+  }
+  if (o.every(x=>/\b\d{5}\b/.test(x))){
+    const n = parseInt(o[ans].match(/\b\d{5}\b/)[0],10);
+    if (n>=99202 && n<=99499) return "CPT E/M";
+  }
+  if (/\bE\/?&?M\b|evaluation and management|\bMDM\b/i.test(ctx)) return "CPT E/M";
+  if (/CPT|modifier|guideline|billing|compliance|HIPAA|payment|audit|upcod|bundl|NCCI|RVU/i.test(ctx)) return "Guidelines & Compliance";
+  return "General";
+}
+// ---- Option / answer patterns ----
+const OPT_P = /^(?:[•▪●◦·]\s*)?\(?([A-Ea-e])\s*[.)]\s*(.*)$/;
+const OPT_L = /^(?:[•▪●◦·]\s*)?([A-Ea-e])\s+(\S.*)$/;
+const NUM_RE = /^(?:Q(?:uestion)?\s*)?(\d{1,3})\s*[.)]\s*(.*)$/i;
+const ANS_RE = /^(?:the\s+)?(?:correct\s+)?(?:answer|ans)\s*(?:is)?\s*[:=\-]\s*(.*)$/i;
+const EXPL_RE = /^(?:simple\s+|detailed\s+)?(?:explanation|rationale)s?\s*[:\-]\s*(.*)$/i;
+const PAIR_RE = /(?:^|[\s,;|(])(\d{1,3})\s*[.):\-–=]*\s*\(?([A-Ea-e])\)?(?=[\s.,;|)]|$)/gm;
+const norm = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "");
+function optMark(line, want, ref){
+  let m = line.match(OPT_P);
+  if (m && m[1].toUpperCase() === want) return m[2];
+  m = line.match(OPT_L);
+  if (m && m[1].toUpperCase() === want && (m[1] === m[1].toLowerCase()) === (ref === ref.toLowerCase())) return m[2];
+  return null;
+}
+function keyPairs(str){
+  const m = new Map(), re = new RegExp(PAIR_RE.source, "gm"); let k;
+  while ((k = re.exec(str))) if (!m.has(+k[1])) m.set(+k[1], k[2].toUpperCase());
+  return m;
+}
+// Where the answer key and an optional explanations section start and end
+function findRegions(lines){
+  const keyHead = /^(?:answer\s*key|answers|answer\s*sheet|key)\s*:?$/i;
+  const expHead = /^(?:explanations|answers?\s*(?:and|&)\s*explanations|rationales|answer\s*explanations)$/i;
+  const keyish = l => { const s = l.replace(new RegExp(PAIR_RE.source, "gm"), " "); return s !== l && !/[A-Za-z0-9]/.test(s); };
+  const hdr = l => /^(q(?:uestion)?\.?\s*(answer|ans)\s*)+$/i.test(l);
+  let headEnd = lines.length, keyStart = -1;
+  for (let i = 0; i < lines.length; i++){
+    if (keyHead.test(lines[i]) && keyPairs(lines.slice(i+1, i+80).join("\n")).size >= 3){ headEnd = i; keyStart = i + 1; break; }
+  }
+  if (keyStart < 0){
+    let j = lines.length;
+    while (j > 0 && (keyish(lines[j-1]) || hdr(lines[j-1]))) j--;
+    if (lines.length - j >= 3 && keyPairs(lines.slice(j).join("\n")).size >= 3){ headEnd = j; keyStart = j; }
+  }
+  let keyEnd = lines.length, expStart = -1;
+  if (keyStart >= 0) for (let i = keyStart; i < lines.length; i++) if (expHead.test(lines[i])){ keyEnd = i; expStart = i + 1; break; }
+  return {headEnd, keyStart, keyEnd, expStart};
+}
+function hasOpt(lines, idx, n, rest){
+  if (/\s\(?[Aa][.)]\s+\S.*\s\(?[Bb][.)]\s+\S/.test(rest)) return true;
+  for (let j = idx + 1; j < Math.min(lines.length, idx + 45); j++){
+    const m = lines[j].match(/^(\d{1,3})\s*[.)]\s*\S/);
+    if (m && +m[1] === n + 1) return false;
+    const o = lines[j].match(OPT_P);
+    if (o && o[1].toUpperCase() === "A") return true;
+  }
+  return false;
+}
+function hasAns(lines, idx, n){
+  for (let j = idx + 1; j < Math.min(lines.length, idx + 45); j++){
+    const m = lines[j].match(/^(\d{1,3})\s*[.)]\s*\S/);
+    if (m && +m[1] === n + 1) return false;
+    if (ANS_RE.test(lines[j])) return true;
+  }
+  return false;
+}
+// Split into question blocks. Numbers must run in sequence so stray numbers in text are ignored.
+function splitBlocks(lines, needOpts){
+  const starts = []; let expect = null;
+  lines.forEach((l, idx) => {
+    const m = l.match(NUM_RE); if (!m) return;
+    const n = +m[1];
+    const ok = needOpts ? ((expect === null || (n >= expect && n <= expect + 4)) && (hasOpt(lines, idx, n, m[2]) || (n === expect && (hasAns(lines, idx, n) || /\?\s*$/.test(m[2])))))
+                        : (expect === null ? n <= 3 : n === expect);
+    if (ok){ starts.push({idx, n, rest: m[2]}); expect = n + 1; }
+  });
+  return starts.map((s, k) => ({n: s.n, lines: [s.rest, ...lines.slice(s.idx + 1, k + 1 < starts.length ? starts[k+1].idx : lines.length)].filter(x => x !== "")}));
+}
+function splitInline(str){
+  const out = []; let rest = str;
+  for (let c = 66; c <= 69; c++){
+    const m = rest.match(new RegExp("\\s\\(?" + String.fromCharCode(c) + "[.)]\\s+", "i"));
+    if (!m) break;
+    out.push(rest.slice(0, m.index)); rest = rest.slice(m.index + m[0].length);
+  }
+  out.push(rest); return out;
+}
+function paragraphs(lines){
+  const out = [];
+  lines.forEach(l => {
+    const isNew = !out.length || /^[•▪●◦·*–-]\s*/.test(l) || /^\d+[.)]\s/.test(l) || /^[A-E][.)]\s/.test(l) || /^[A-Z][A-Za-z\/ ]{0,30}:/.test(l);
+    if (isNew) out.push(l); else out[out.length-1] += " " + l;
+  });
+  return out.join("\n");
+}
+function analyze(b){
+  const L = b.lines;
+  let a0 = L.findIndex(l => { const m = l.match(OPT_P); return m && m[1].toUpperCase() === "A"; });
+  const ansAny = L.findIndex(l => ANS_RE.test(l));
+  if (ansAny >= 0 && a0 > ansAny) a0 = -1;   // "A. Incorrect…" lines after the answer belong to the explanation, not to the choices
+  const from = Math.max(a0, 0);
+  const ansAt = L.findIndex((l, i) => i >= from && ANS_RE.test(l));
+  const expAt = L.findIndex((l, i) => i >= from && EXPL_RE.test(l));
+  const ends = [ansAt, expAt].filter(x => x >= 0);
+  const endOpts = ends.length ? Math.min(...ends) : L.length;
+  let stem = "", opts = [], labels = null;
+  if (a0 >= 0){
+    stem = tidy(L.slice(0, a0).join(" "));
+    const first = L[a0].match(OPT_P), out = [[first[2]]]; labels = [first[1].toUpperCase()]; let want = 1;
+    for (let j = a0 + 1; j < endOpts; j++){
+      let lab = "ABCDE"[want], r = want < 5 ? optMark(L[j], lab, first[1]) : null;
+      if (r === null && out.length >= 2 && want < 4){ r = optMark(L[j], "ABCDE"[want + 1], first[1]); if (r !== null){ lab = "ABCDE"[want + 1]; want++; } }
+      if (r !== null){ out.push([r]); labels.push(lab); want++; } else out[out.length-1].push(L[j]);
+    }
+    opts = out.map(x => tidy(x.join(" ")));
+    if (opts.length === 1){ opts = splitInline(opts[0]); labels = opts.map((_, k) => "ABCDE"[k]); }
+  } else {
+    const joined = L.slice(0, endOpts).join(" ");
+    const m = joined.match(/(^|\s)\(?[Aa][.)]\s+/);
+    if (m){ stem = tidy(joined.slice(0, m.index)); opts = splitInline(joined.slice(m.index + m[0].length)).map(tidy); }
+    else stem = tidy(joined);
+  }
+  stem = stem.replace(/^Question\s*[:.\-]?\s*/i, "");
+  let rem = null, expLines = [];
+  if (ansAt >= 0){
+    rem = L[ansAt].match(ANS_RE)[1].trim(); let nxt = ansAt + 1;
+    if (!rem && nxt < L.length){ rem = L[nxt]; nxt++; }
+    expLines = L.slice(nxt);
+  } else if (expAt >= 0) expLines = L.slice(expAt);
+  if (expLines.length){
+    const m = expLines[0].match(EXPL_RE);
+    if (m) expLines = [m[1], ...expLines.slice(1)].filter(x => x !== "");
+    expLines = expLines.filter(l => !/^Section\s*:/i.test(l)).map(l => l.replace(/\s+/g, " "));
+  }
+  // Marked answers such as "*C. text" or "C. text ✓"
+  let marked = -1;
+  const mk = o => /^[*✓✔☑]\s*|\s*[*✓✔☑]$|\s*\((?:correct|answer)\)$/i.test(o);
+  if (opts.filter(mk).length === 1){ marked = opts.findIndex(mk); opts = opts.map(o => o.replace(/^[*✓✔☑]\s*|\s*[*✓✔☑]$|\s*\((?:correct|answer)\)$/i, "")); }
+  return {stem, opts, labels: labels && labels.length === opts.length ? labels : opts.map((_, k) => "ABCDE"[k]), rem, exp: paragraphs(expLines), marked};
+}
+function letterIdx(letter, labels, len){
+  const i = labels ? labels.indexOf(letter) : letter.charCodeAt(0) - 65;
+  return i >= 0 && i < len ? i : -1;
+}
+function resolveAnswer(rem, opts, labels){
+  if (!rem) return -1;
+  let m = rem.match(/^\(?([A-Ea-e])\)?\s*(?:[.:)(\-,]|$)/);
+  if (m){ const L = m[1].toUpperCase(); return opts.length ? letterIdx(L, labels, opts.length) : L.charCodeAt(0) - 65; }
+  const nr = norm(rem); let best = -1, bl = 0;
+  opts.forEach((o, i) => { const no = norm(o); if (no.length >= 2 && (nr.startsWith(no) || (nr.length >= 3 && no.startsWith(nr))) && no.length > bl){ best = i; bl = no.length; } });
+  if (best >= 0) return best;
+  m = rem.match(/^([A-Ea-e])\s+\S/);
+  if (m) return letterIdx(m[1].toUpperCase(), labels, opts.length);
+  return -1;
+}
+// Answer-key tables like "Question | Correct option | Explanation" (one row per question, explanation may wrap)
+function parseKeyRows(lines){
+  const rows = new Map(); let cur = null, last = 0;
+  const hdr = /^(?:question|q)\s+(?:correct\s+option|correct|answer)(?:\s+explanation)?$/i;
+  for (const l of lines){
+    if (hdr.test(l)) continue;
+    const m = l.match(/^(\d{1,3})\s+([A-Ea-e]|[—–-])(?=\s|$)\s*(.*)$/);
+    if (m){
+      const n = +m[1];
+      if (/^\d{1,3}\s+[A-Ea-e](\s|$)/.test(m[3])) return new Map();
+      if (n > last && n <= last + 3){ cur = {letter: /[A-Ea-e]/.test(m[2]) ? m[2].toUpperCase() : null, exp: m[3]}; rows.set(n, cur); last = n; continue; }
+    }
+    if (cur) cur.exp += " " + l;
+  }
+  rows.forEach(r => { r.exp = r.exp.replace(/\s+/g, " ").trim(); });
+  return rows.size >= 3 ? rows : new Map();
+}
+function parseQuiz(text){
+  // Drop section dividers such as "Section 15: Medical Terminology" and "4 Questions" so they never end up inside a choice
+  const JUNK = [/^Section\s+\d+\s*[:\-–—]/i, /^\d+\s+Questions?$/i, /^©/, /^All rights reserved/i];
+  const lines = text.split("\n").map(l => l.trim()).filter(l => l && !JUNK.some(r => r.test(l)));
+  const R = findRegions(lines);
+  const head = lines.slice(0, R.headEnd);
+  const key = R.keyStart >= 0 ? keyPairs(lines.slice(R.keyStart, R.keyEnd).join("\n")) : new Map();
+  const krows = R.keyStart >= 0 ? parseKeyRows(lines.slice(R.keyStart, R.keyEnd)) : new Map();
+  const side = new Map();
+  if (R.expStart >= 0) for (const b of splitBlocks(lines.slice(R.expStart), false)){
+    const a = analyze(b); if (!side.has(b.n)) side.set(b.n, a);
+  }
+  const items = [], skipped = [], noChoices = []; let noExp = 0; const seen = new Set();
+  for (const b of splitBlocks(head, true)){
+    if (seen.has(b.n)) continue;
+    const a = analyze(b);
+    if (a.opts.length < 2 && a.stem){ seen.add(b.n); noChoices.push(b.n); continue; }
+    if (a.opts.length < 2 || a.opts.length > 5 || !a.stem) continue;
+    seen.add(b.n);
+    const sd = side.get(b.n);
+    const kr = krows.get(b.n);
+    let idx = resolveAnswer(a.rem, a.opts, a.labels);
+    if (idx < 0 && kr && kr.letter) idx = letterIdx(kr.letter, a.labels, a.opts.length);
+    if (idx < 0 && key.has(b.n)) idx = letterIdx(key.get(b.n), a.labels, a.opts.length);
+    if (idx < 0 && sd) idx = resolveAnswer(sd.rem, a.opts, a.labels);
+    if (idx < 0 && a.marked >= 0) idx = a.marked;
+    if (idx < 0 || idx >= a.opts.length){ skipped.push(b.n); continue; }
+    const exp = a.exp || (sd ? sd.exp : "") || (kr ? kr.exp : "");
+    if (!exp) noExp++;
+    items.push({n: b.n, q: fixQuotes(a.stem), options: a.opts.map(fixQuotes), answer: idx,
+      explanation: exp ? fixQuotes(exp) : "", cat: categorize(a.stem, a.opts, idx)});
+  }
+  return {items, missing: skipped.length, skipped, noChoices, noExp, total: items.length + skipped.length + noChoices.length};
+}
+
+
+let ALL = [], pdfName = "", note = "", docKind = "PDF";
+if (window.pdfjsLib){
+  try {
+    const wurl = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob(['importScripts("' + wurl + '");'], {type: "text/javascript"}));
+  } catch (e) { pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js"; }
+}
+if (!globalThis.pdfjsWorker && globalThis["pdfjs-dist/build/pdf.worker"]) globalThis.pdfjsWorker = globalThis["pdfjs-dist/build/pdf.worker"];
+
+function setNote(t){ note = t; const n = $("note"); if (n) n.textContent = t; }
+// Some PDFs store symbols (hyphen, colon, brackets, quotes…) as private-use characters that show as empty boxes.
+const SYMBOLS = {0xe081: "(", 0xe082: ")", 0xe088: "-", 0xe089: "–", 0xe092: ":", 0xe099: "≤", 0xe09a: "≥", 0xe09d: "+",
+  0x2bc: "’", 0x2ee: "”", 0xf0b7: "•", 0xf0a7: "▪", 0xf0d8: "•"};
+function cleanText(s){
+  return s.replace(/[\u00ad\u200b-\u200d\u2060\ufeff]/g, "").replace(/[\ue000-\uf8ff\u02bc\u02ee]/g, ch => SYMBOLS[ch.codePointAt(0)] || " ");
+}
+async function readPdf(file){
+  if (!window.pdfjsLib) throw new Error("The PDF reader could not load (it needs an internet connection the first time). Word files still open offline.");
+  const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer(), verbosity: 0}).promise;
+  const pages = [];
+  for (let p = 1; p <= pdf.numPages; p++){
+    setNote("Reading page " + p + " of " + pdf.numPages + "…");
+    const tc = await (await pdf.getPage(p)).getTextContent();
+    const its = tc.items.map(it => ({x: it.transform[4], y: it.transform[5], w: it.width, s: cleanText(it.str)})).filter(it => it.s !== "");
+    its.sort((a,b) => b.y - a.y);
+    const lines = [];
+    its.forEach(it => {
+      const ln = lines[lines.length-1];
+      if (ln && Math.abs(ln.y - it.y) <= 3) ln.parts.push(it); else lines.push({y: it.y, parts: [it]});
+    });
+    pages.push(lines.map(ln => {
+      ln.parts.sort((a,b) => a.x - b.x);
+      let s = "", end = null;
+      ln.parts.forEach(pt => {
+        if (end !== null && pt.x - end > 1.2 && !/\s$/.test(s) && !/^\s/.test(pt.s)) s += " ";
+        s += pt.s; end = pt.x + pt.w;
+      });
+      return s.replace(/\s+/g, " ").trim();
+    }).filter(l => l && !/^(page\s*)?\d{1,3}(\s*(of|\/)\s*\d{1,3})?$/i.test(l)));
+  }
+  const freq = new Map();
+  pages.forEach(pg => new Set(pg).forEach(l => freq.set(l, (freq.get(l) || 0) + 1)));
+  const limit = Math.max(3, pages.length * 0.4);
+  return pages.map(pg => pg.filter(l => !(freq.get(l) >= limit && l.length < 60 && !/^(Answer|Explanation)/i.test(l))).join("\n")).join("\n");
+}
+function listNums(a){ const s = a.slice(0, 12).map(n => "Q" + n).join(", "); return s + (a.length > 12 ? " and " + (a.length - 12) + " more" : ""); }
+// ---------- Word (.docx) reader: unzip, then read paragraphs, tables and automatic list numbers ----------
+const WNS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+async function inflateRaw(bytes){
+  if (!("DecompressionStream" in window)) throw new Error("This browser can’t unpack Word files. Please use an up-to-date Chrome, Edge, Firefox or Safari.");
+  return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+}
+async function unzip(buf, names){
+  const u8 = new Uint8Array(buf), dv = new DataView(buf); let eocd = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  if (eocd < 0) throw new Error("This file is not a valid Word document (.docx).");
+  const count = dv.getUint16(eocd + 10, true); let q = dv.getUint32(eocd + 16, true); const out = new Map();
+  for (let n = 0; n < count && dv.getUint32(q, true) === 0x02014b50; n++){
+    const method = dv.getUint16(q + 10, true), csize = dv.getUint32(q + 20, true), nl = dv.getUint16(q + 28, true), el2 = dv.getUint16(q + 30, true), cl = dv.getUint16(q + 32, true), lho = dv.getUint32(q + 42, true);
+    const name = new TextDecoder().decode(u8.subarray(q + 46, q + 46 + nl)); q += 46 + nl + el2 + cl;
+    if (!names.includes(name)) continue;
+    const start = lho + 30 + dv.getUint16(lho + 26, true) + dv.getUint16(lho + 28, true), raw = u8.subarray(start, start + csize);
+    out.set(name, method === 0 ? raw : await inflateRaw(raw));
+  }
+  return out;
+}
+const kid = (el, name) => Array.from(el.children).find(c => c.localName === name) || null;
+const wVal = el => el ? el.getAttributeNS(WNS, "val") : null;
+const letterSeq = n => { let s = ""; while (n > 0){ n--; s = String.fromCharCode(97 + n % 26) + s; n = Math.floor(n / 26); } return s; };
+const romanSeq = n => { let r = ""; [[1000,"m"],[900,"cm"],[500,"d"],[400,"cd"],[100,"c"],[90,"xc"],[50,"l"],[40,"xl"],[10,"x"],[9,"ix"],[5,"v"],[4,"iv"],[1,"i"]].forEach(([v, s]) => { while (n >= v){ r += s; n -= v; } }); return r; };
+function fmtNum(n, fmt){
+  switch (fmt){
+    case "decimalZero": return (n < 10 ? "0" : "") + n;
+    case "upperLetter": return letterSeq(n).toUpperCase();
+    case "lowerLetter": return letterSeq(n);
+    case "upperRoman": return romanSeq(n).toUpperCase();
+    case "lowerRoman": return romanSeq(n);
+    case "bullet": return "•";
+    case "none": return "";
+    default: return String(n);
+  }
+}
+async function readDocx(file){
+  const files = await unzip(await file.arrayBuffer(), ["word/document.xml", "word/numbering.xml", "word/styles.xml"]);
+  if (!files.has("word/document.xml")) throw new Error("This file has no readable Word text.");
+  const dec = new TextDecoder("utf-8"), parse = b => { const d = new DOMParser().parseFromString(dec.decode(b), "application/xml"); if (d.getElementsByTagName("parsererror").length) throw new Error("The Word file could not be read."); return d; };
+  const doc = parse(files.get("word/document.xml"));
+  // numbering definitions
+  const abs = {}, nums = {};
+  if (files.has("word/numbering.xml")){
+    const nx = parse(files.get("word/numbering.xml"));
+    Array.from(nx.getElementsByTagNameNS(WNS, "abstractNum")).forEach(a => {
+      const lv = {}; Array.from(a.children).filter(c => c.localName === "lvl").forEach(l => { lv[+l.getAttributeNS(WNS, "ilvl")] = {fmt: wVal(kid(l, "numFmt")), text: wVal(kid(l, "lvlText")), start: +(wVal(kid(l, "start")) || 1)}; });
+      abs[a.getAttributeNS(WNS, "abstractNumId")] = lv;
+    });
+    Array.from(nx.getElementsByTagNameNS(WNS, "num")).forEach(n => {
+      const ov = {}; Array.from(n.children).filter(c => c.localName === "lvlOverride").forEach(o => { const so = kid(o, "startOverride"); if (so) ov[+o.getAttributeNS(WNS, "ilvl")] = +wVal(so); });
+      nums[n.getAttributeNS(WNS, "numId")] = {aid: wVal(kid(n, "abstractNumId")), ov};
+    });
+  }
+  // numbering that comes from paragraph styles
+  const styles = {};
+  if (files.has("word/styles.xml")) Array.from(parse(files.get("word/styles.xml")).getElementsByTagNameNS(WNS, "style")).forEach(s => {
+    const ppr = kid(s, "pPr"), np = ppr && kid(ppr, "numPr");
+    styles[s.getAttributeNS(WNS, "styleId")] = {base: wVal(kid(s, "basedOn")), num: np ? {numId: wVal(kid(np, "numId")), ilvl: +(wVal(kid(np, "ilvl")) || 0)} : null};
+  });
+  const styleNum = (id, d = 0) => { const s = styles[id]; if (!s || d > 6) return null; return s.num || (s.base ? styleNum(s.base, d + 1) : null); };
+  const counters = {};
+  const nextLabel = (numId, ilvl) => {
+    const nm = nums[numId]; if (!nm) return ""; const lv = abs[nm.aid]; if (!lv) return "";
+    const key = Object.keys(nm.ov).length ? "n" + numId : "a" + nm.aid, arr = counters[key] || (counters[key] = []);
+    const startOf = i => (nm.ov[i] != null ? nm.ov[i] : (lv[i] ? lv[i].start : 1));
+    arr[ilvl] = arr[ilvl] === undefined ? startOf(ilvl) : arr[ilvl] + 1; arr.length = ilvl + 1;
+    const me = lv[ilvl] || {fmt: "decimal", text: "%" + (ilvl + 1) + "."};
+    if (me.fmt === "bullet") return "•";
+    return (me.text || "").replace(/%(\d)/g, (m, d) => { const i = +d - 1; const v = arr[i] === undefined ? startOf(i) : arr[i]; return fmtNum(v, lv[i] ? lv[i].fmt : "decimal"); });
+  };
+  const runsText = node => {
+    let s = "";
+    Array.from(node.children).forEach(c => {
+      const n = c.localName;
+      if (n === "r") Array.from(c.children).forEach(x => {
+        const k = x.localName;
+        if (k === "t") s += x.textContent; else if (k === "tab") s += " "; else if (k === "noBreakHyphen") s += "-";
+        else if (k === "br" || k === "cr") s += x.getAttributeNS(WNS, "type") === "page" ? "" : "\n";
+        else if (k === "sym"){ const ch = (x.getAttributeNS(WNS, "char") || "").toUpperCase(); s += ch === "F0B7" || ch === "F0A7" || ch === "F0D8" ? "•" : ""; }
+      });
+      else if (["hyperlink", "smartTag", "ins", "fldSimple", "customXml"].includes(n)) s += runsText(c);
+      else if (n === "sdt"){ const sc = kid(c, "sdtContent"); if (sc) s += runsText(sc); }
+    });
+    return s;
+  };
+  const para = (pe, out) => {
+    const ppr = kid(pe, "pPr"); let num = null;
+    if (ppr){ const np = kid(ppr, "numPr"); if (np) num = {numId: wVal(kid(np, "numId")), ilvl: +(wVal(kid(np, "ilvl")) || 0)}; else { const ps = kid(ppr, "pStyle"); if (ps) num = styleNum(wVal(ps)); } }
+    const label = num && num.numId && num.numId !== "0" ? nextLabel(num.numId, num.ilvl) : "";
+    const parts = cleanText(runsText(pe)).split("\n").map(t => t.replace(/\s+/g, " ").trim()).filter(Boolean);
+    if (!parts.length) return;
+    if (label) parts[0] = label + " " + parts[0];
+    parts.forEach(t => out.push(t));
+  };
+  const walk = (node, out) => {
+    Array.from(node.children).forEach(c => {
+      const n = c.localName;
+      if (n === "p") para(c, out);
+      else if (n === "tbl") Array.from(c.children).filter(r => r.localName === "tr").forEach(tr => {
+        const cells = Array.from(tr.children).filter(x => x.localName === "tc").map(tc => { const cl = []; walk(tc, cl); return cl.join(" "); }).filter(Boolean);
+        if (cells.length) out.push(cells.join(" "));
+      });
+      else if (n === "sdt"){ const sc = kid(c, "sdtContent"); if (sc) walk(sc, out); }
+      else if (n === "customXml" || n === "ins") walk(c, out);
+    });
+  };
+  const body = doc.getElementsByTagNameNS(WNS, "body")[0]; if (!body) throw new Error("This file has no readable Word text.");
+  const lines = []; walk(body, lines);
+  return lines.join("\n");
+}
+async function readDocument(file){
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  const head = new Uint8Array(await file.slice(0, 4).arrayBuffer()), sig = String.fromCharCode(...head);
+  if (sig === "%PDF" || ext === "pdf"){ docKind = "PDF"; return readPdf(file); }
+  if (sig.slice(0, 2) === "PK" || ext === "docx"){ docKind = "WORD"; return readDocx(file); }
+  if (ext === "doc") throw new Error("Old .doc files can’t be read. In Word choose File → Save As → Word Document (.docx), then upload that file.");
+  if (["txt", "md", "text"].includes(ext)){ docKind = "TXT"; return (await file.text()).replace(/\r\n?/g, "\n"); }
+  throw new Error("Please choose a PDF, a Word document (.docx) or a text file.");
+}
+async function load(file){
+  setNote("Reading " + file.name + "…");
+  try {
+    const r = parseQuiz(await readDocument(file));
+    if (!r.items.length){
+      ALL = [];
+      setNote("No questions with answers were found. The file needs numbered questions, A–D choices and answers (an answer key or “Answer:” lines).");
+    } else {
+      ALL = r.items; pdfName = file.name; cfg.count = ALL.length; cfg.start = 1;
+      note = "Found " + r.items.length + " questions in " + file.name + "."
+        + (r.skipped.length ? " Skipped " + listNums(r.skipped) + " (no answer found)." : "")
+        + (r.noChoices.length ? " Skipped " + listNums(r.noChoices) + " because the file has no answer choices for them." : "")
+        + (r.noExp ? " " + (r.noExp === r.items.length ? "This file has no explanations, so practice mode will show the correct answer only." : r.noExp + " have no explanation.") : "");
+      if (await libSave(file.name, docKind, r.items)) note += " Saved to your library.";
+    }
+  } catch (e) { ALL = []; note = "Couldn’t read this file: " + (e && e.message ? e.message : e); }
+  renderStart();
+}
+function plan(){
+  const s = Math.max(1, cfg.start | 0), pool = ALL.filter(q => q.n >= s);
+  return {s, pool, c: Math.min(Math.max(1, cfg.count | 0), pool.length)};
+}
+function syncStart(){
+  const bsx = $("bsec"); if (bsx){ const pc = plan().c; bsx.classList.toggle("hide", !(timerOn() && pc >= 50)); $("bmin").classList.toggle("hide", !(cfg.breaks > 0)); }
+  const tsx = $("tsec"); if (tsx){ tsx.classList.toggle("hide", cfg.mode !== "exam"); $("tmin").classList.toggle("hide", cfg.timer !== "on"); }
+  document.querySelectorAll(".chip[data-key]").forEach(b => b.setAttribute("aria-pressed", String(cfg[b.dataset.key]) === b.dataset.val));
+  const mn = $("modenote");
+  if (mn) mn.textContent = cfg.mode === "exam" ? "No feedback until you submit, like the real test." : "See the correct answer and explanation after each question.";
+  const sm = $("sum"), go = $("go"); if (!sm) return;
+  const {s, pool, c} = plan();
+  if (!pool.length){ sm.textContent = "There are no questions at or after Q" + s + ". Choose an earlier start."; go.disabled = true; return; }
+  go.disabled = false;
+  sm.textContent = cfg.order === "original"
+    ? "You’ll get " + c + " question" + (c > 1 ? "s" : "") + ", Q" + pool[0].n + " to Q" + pool[c-1].n + ", in the file’s order."
+    : "You’ll get " + c + " random question" + (c > 1 ? "s" : "") + " from the " + pool.length + " available from Q" + pool[0].n + " onward.";
+  if (timerOn()) sm.textContent += " Time limit: " + fmtMin(c * cfg.mpq) + ".";
+  if (aidsOn(c)) sm.textContent += " Breaks: " + (cfg.breaks ? cfg.breaks + " × " + cfg.breakMin + " min" : "none") + (cfg.emerg === "on" ? ", plus one emergency pause" : "") + ".";
+}
+function optionRow(key, items, ph, min, max){
+  const box = el("div","chips");
+  items.forEach(([v, label]) => {
+    const b = el("button","chip",label); b.dataset.key = key; b.dataset.val = v;
+    b.onclick = () => { cfg[key] = v; box.querySelector("input").value = ""; syncStart(); };
+    box.appendChild(b);
+  });
+  const inp = el("input","num"); inp.type = "number"; inp.min = min; inp.max = max; inp.placeholder = ph;
+  inp.setAttribute("inputmode","numeric"); inp.setAttribute("aria-label", ph);
+  inp.oninput = () => { const v = key === "mpq" ? parseFloat(inp.value) : parseInt(inp.value, 10); if (!isNaN(v)) cfg[key] = Math.min(Math.max(v, min), max); syncStart(); };
+  box.appendChild(inp);
+  return box;
+}
+function renderStart(){
+  stopTimer(); main.innerHTML = ""; $("side").classList.add("hide"); $("fill").style.width = "0";
+  const hero = el("div","hero");
+  hero.append(el("span","eyebrow","PDF or Word → practice exam"), el("h1","","Turn any question PDF or Word file into a real exam"),
+    el("p","sub","Upload a practice-test PDF or Word document (.docx) with numbered questions, A–D choices and answers (an answer key or “Answer:” lines). Explanations are optional. It is read in your browser and never sent anywhere."));
+  const steps = el("ol","steps");
+  ["Upload your file","Choose your settings","Take the quiz"].forEach((t, k) => steps.appendChild(el("li", ALL.length ? (k === 0 ? "done" : k === 1 ? "on" : "") : (k === 0 ? "on" : ""), t)));
+  hero.appendChild(steps);
+  const art = el("div","heroart"); art.setAttribute("aria-hidden","true"); art.innerHTML = HERO[curTheme()]; hero.appendChild(art);
+  main.appendChild(hero);
+  const rb = resumeBanner(); if (rb) main.appendChild(rb);
+  const input = el("input"); input.type = "file"; input.accept = "application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx,.txt"; input.className = "hide";
+  input.onchange = () => { if (input.files[0]) load(input.files[0]); };
+  const pick = el("button","btn", ALL.length ? "Choose a different file" : "Choose file"); pick.onclick = () => input.click();
+  const drop = el("div","drop" + (ALL.length ? " done" : "")), dl = el("div","dropleft"), tx = el("div","droptxt");
+  tx.append(el("b","", ALL.length ? (pdfName || "File loaded") : "Drop your PDF or Word file here"), el("span","", ALL.length ? "Loaded and ready" : "or pick a file from your computer"));
+  dl.append(el("span","pdfbadge", ALL.length ? docKind : "PDF"), tx); drop.append(dl, pick, input); main.appendChild(drop);
+  const n = el("p","note",note); n.id = "note"; main.appendChild(n);
+  const lib = libSection(); lib.style.marginTop = "20px"; main.appendChild(lib);
+  const sv = savedSection(), lk = lockedSection(); lk.style.marginTop = "20px";
+  const lists = el("div",""); lists.style.marginTop = "26px"; lists.appendChild(logSummaryRow()); if (sv) lists.appendChild(sv); lists.appendChild(lk);
+  if (!ALL.length){ main.appendChild(lists); return; }
+  const maxN = Math.max(...ALL.map(q => q.n));
+  const counts = [10,25,50,100].filter(c => c < ALL.length).map(c => [c, String(c)]).concat([[ALL.length, "All " + ALL.length]]);
+  const starts = [1,5,10,50].filter(s => s <= maxN).map(s => [s, s === 1 ? "Q1 (beginning)" : "Q" + s]);
+  const ms = section("Mode", chips("mode",[["exam","Exam"],["practice","Practice"]]));
+  const mn = el("p","note"); mn.id = "modenote"; ms.appendChild(mn);
+  const sm = el("p","note sum"); sm.id = "sum";
+  const go = el("button","btn","Start quiz"); go.id = "go"; go.onclick = start;
+  const tsec = section("Timer", chips("timer",[["off","No timer"],["on","Timed exam"]]));
+  tsec.id = "tsec";
+  const tmin = el("div",""); tmin.id = "tmin"; tmin.style.marginTop = "10px";
+  tmin.append(optionRow("mpq", [[2.4,"2.4 min (CPC pace)"],[1,"1 min"],[1.5,"1.5 min"]], "Custom minutes", 0.2, 30),
+    el("p","note","Minutes per question. The total time is questions × minutes, and the exam submits itself when time runs out."));
+  tsec.appendChild(tmin);
+  const bsec = el("div","sec"); bsec.id = "bsec";
+  bsec.append(el("h2","","Breaks and pauses (timed exams of 50+ questions)"),
+    optionRow("breaks", [[0,"No breaks"],[1,"1 break"],[2,"2 breaks"],[3,"3 breaks"]], "Custom breaks", 0, 10));
+  const bmin = el("div",""); bmin.id = "bmin"; bmin.style.marginTop = "10px";
+  bmin.append(optionRow("breakMin", [[5,"5 min each"],[10,"10 min each"],[15,"15 min each"]], "Custom minutes", 1, 60),
+    el("p","note","Press Take break during the exam to start that break’s countdown. The exam timer pauses while you are on a break."));
+  bsec.appendChild(bmin);
+  const em = el("div",""); em.style.marginTop = "14px";
+  em.append(el("h2","","Emergency pause"), chips("emerg",[["on","Allow (one use)"],["off","Off"]]),
+    el("p","note","A one-time pause with no time limit. The exam stays paused until you click Resume."));
+  bsec.appendChild(em);
+  const cards = el("div","cards");
+  cards.append(
+    section("How many questions?", optionRow("count", counts, "Custom number", 1, ALL.length)),
+    section("Start from question number", optionRow("start", starts, "Custom start", 1, maxN), "Questions follow the file’s own numbering."),
+    ms, section("Question order", chips("order",[["original","Original order"],["shuffle","Shuffled"]])),
+    section("Answer choices (A, B, C, D)", chips("opts",[["keep","Original order"],["shuffle","Shuffled"]]),
+      "Questions with choices like “All of the above” or explanations that refer to letters keep their original order."), tsec, bsec);
+  const launch = el("div","launch"); launch.append(sm, go);
+  main.append(cards, launch, lists);
+  syncStart();
+}
+main.ondragover = e => { e.preventDefault(); const d = main.querySelector(".drop"); if (d) d.classList.add("over"); };
+main.ondragleave = () => { const d = main.querySelector(".drop"); if (d) d.classList.remove("over"); };
+main.ondrop = e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) load(f); };
+
+let tmr = null, tStart = 0, tEnd = 0, tTotal = 0, deadline = 0, timedOut = false;
+let brkTotal = 0, emergOn = false, breaksLeft = 0, pauseLeft = 0, paused = null, pausedTotal = 0, breaksTaken = 0, pauseUsed = 0;
+const fmt = (ms, up) => { const s = Math.max(0, up ? Math.floor(ms / 1000) : Math.ceil(ms / 1000)); return Math.floor(s / 3600) + ":" + String(Math.floor(s % 3600 / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
+const fmtMin = m => { m = Math.round(m); return m >= 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : m + " min"; };
+function timerOn(){ return cfg.mode === "exam" && cfg.timer === "on"; }
+function aidsOn(n){ return timerOn() && n >= 50; }
+function updateBar(){
+  const box = $("tbtns"); box.innerHTML = "";
+  if (brkTotal){ const b = el("button","chip sm","☕ Take break (" + breaksLeft + " left)"); b.disabled = breaksLeft <= 0 || !!paused; b.onclick = () => startPause("break"); box.appendChild(b); }
+  if (emergOn){ const b = el("button","chip sm","⏸ Emergency pause (" + pauseLeft + " left)"); b.disabled = pauseLeft <= 0 || !!paused; b.onclick = () => startPause("pause"); box.appendChild(b); }
+  $("ttime").classList.toggle("hide", !tTotal);
+  $("tbar").classList.toggle("hide", !(tTotal > 0 || brkTotal > 0 || emergOn));
+}
+function startPause(type){
+  if (paused || (type === "break" ? breaksLeft <= 0 : pauseLeft <= 0)) return;
+  if (type === "break") breaksLeft--; else pauseLeft--;
+  paused = {type, start: Date.now(), len: Math.round(cfg.breakMin * 60000)};
+  $("ovt").textContent = type === "break" ? "Break" : "Emergency pause";
+  $("ovs").textContent = type === "break" ? "Your exam timer is paused. The break ends by itself when this reaches zero." : "The exam is paused for as long as you need. Click Resume when you are ready. You can use this only once.";
+  $("ovb").textContent = type === "break" ? "End break early" : "Resume exam";
+  $("ov").classList.remove("hide"); document.querySelector(".wrap").inert = true; updateBar(); tick();
+}
+function endPause(){
+  if (!paused) return;
+  const d = paused.type === "break" ? Math.min(Date.now() - paused.start, paused.len) : Date.now() - paused.start;
+  if (paused.type === "break") breaksTaken++; else pauseUsed += d;
+  pausedTotal += d; if (tTotal) deadline += d;
+  paused = null; $("ov").classList.add("hide"); document.querySelector(".wrap").inert = false; updateBar(); tick();
+}
+function stopTimer(){
+  if (tmr){ tEnd = Date.now(); clearInterval(tmr); tmr = null; }
+  paused = null; $("ov").classList.add("hide"); document.querySelector(".wrap").inert = false;
+  $("tbar").classList.add("hide");
+}
+function tick(){
+  if (paused){
+    const d = Date.now() - paused.start;
+    if (paused.type === "break"){ $("ovtime").textContent = fmt(paused.len - d); if (d >= paused.len) endPause(); }
+    else $("ovtime").textContent = fmt(d, true);
+    return;
+  }
+  if (!tTotal) return;
+  const left = deadline - Date.now();
+  $("tleft").textContent = fmt(left); $("tbar").classList.toggle("warn", left <= 300000);
+  if (left <= 0){ timedOut = true; stopTimer(); view = "result"; render(); }
+}
+function beginTimer(n){
+  stopTimer(); timedOut = false; tTotal = 0; pausedTotal = 0; breaksTaken = 0; pauseUsed = 0; tStart = Date.now();
+  brkTotal = aidsOn(n) ? cfg.breaks : 0; emergOn = aidsOn(n) && cfg.emerg === "on";
+  breaksLeft = brkTotal; pauseLeft = emergOn ? 1 : 0;
+  if (timerOn()){ tTotal = Math.round(n * cfg.mpq * 60000); deadline = tStart + tTotal; }
+  updateBar();
+  if (tTotal || brkTotal || emergOn){ tick(); if (!timedOut) tmr = setInterval(tick, 500); }
+}
+$("ovb").onclick = endPause;
+let curId = null, reviewOnly = false, attemptId = null, fromLog = false, logFilter = "all";
+const logProm = {};
+let SK = "pdfquiz:v1:";
+const kvCache = new Map();
+function sGet(k){ try { return kvCache.has(k) ? JSON.parse(kvCache.get(k)) : null; } catch (e) { return null; } }
+function sSet(k, v){ try { const s = JSON.stringify(v); kvCache.set(k, s); if (Cloud) Cloud.kvSet(k, s); return true; } catch (e) { return false; } }
+function sDel(k){ kvCache.delete(k); if (Cloud) Cloud.kvDel(k); }
+const getIndex = () => sGet("index") || [];
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const when = t => new Date(t).toLocaleString([], {dateStyle: "medium", timeStyle: "short"});
+function putRecord(meta, rec){
+  if (!sSet("rec:" + meta.id, rec)) return false;
+  if (!sSet("index", [meta].concat(getIndex().filter(m => m.id !== meta.id)))){ sDel("rec:" + meta.id); return false; }
+  return true;
+}
+function delRecord(id){ sDel("rec:" + id); sSet("index", getIndex().filter(m => m.id !== id)); }
+function leftMs(){ return tTotal ? Math.max(0, deadline - (paused ? paused.start : Date.now())) : 0; }
+function persistProgress(){
+  if (!curId || !(view === "quiz" || view === "confirm") || !qs.length) return false;
+  const left = leftMs(), pb = paused && paused.type === "break" ? 1 : 0, pp = paused && paused.type === "pause" ? 1 : 0;
+  const meta = {id: curId, type: "progress", name: pdfName || "Quiz", date: Date.now(),
+    text: ans.filter(a => a !== null).length + "/" + qs.length + " answered, " + cfg.mode + (tTotal ? ", " + fmt(left) + " left" : "")};
+  const rec = {qs, ans, flags, i, name: meta.name, mode: cfg.mode, timer: cfg.timer, mpq: cfg.mpq, breakMin: cfg.breakMin, opts: cfg.opts,
+    tTotal, leftMs: left, brkTotal, emergOn, breaksLeft: breaksLeft + pb, pauseLeft: pauseLeft + pp, breaksTaken, pauseUsed};
+  return putRecord(meta, rec);
+}
+function saveProgress(){
+  if (paused) return;
+  if (!persistProgress()){ $("savemsg").textContent = "Couldn’t save. Browser storage may be full or blocked."; return; }
+  stopTimer(); view = "start"; note = "Progress saved. Resume it from the list below whenever you like."; render();
+}
+let autoFail = false, netTimer = null;
+function autoSave(){
+  if (!(view === "quiz" || view === "confirm") || !curId) return;
+  if (!persistProgress() && !autoFail){ autoFail = true; $("savemsg").textContent = "Autosave isn’t available (browser storage is full or blocked)."; }
+}
+function showNet(text, ms){
+  const n = $("net"); n.textContent = text; n.classList.remove("hide"); clearTimeout(netTimer);
+  if (ms) netTimer = setTimeout(() => n.classList.add("hide"), ms);
+}
+setInterval(autoSave, 15000);
+addEventListener("pagehide", autoSave); addEventListener("beforeunload", autoSave);
+document.addEventListener("visibilitychange", () => { if (document.hidden) autoSave(); });
+addEventListener("offline", () => { autoSave(); showNet("You’re offline. Your progress is saved on this device."); });
+addEventListener("online", () => showNet("Back online.", 3000));
+function resumeBanner(){
+  const m = getIndex().find(x => x.type === "progress"); if (!m) return null;
+  const b = el("div","perm"), r = el("div","chips"), go = el("button","btn","Resume where I left off");
+  go.onclick = () => openRecord(m.id); r.appendChild(go);
+  b.append(el("h2","","Unfinished quiz found"), el("p","note", m.name + " · " + m.text + " · saved " + when(m.date)), r);
+  return b;
+}
+function saveFinished(btn){
+  const right = ans.reduce((n, a, j) => n + (a === qs[j].answer ? 1 : 0), 0), pct = Math.round(right / qs.length * 100);
+  const meta = {id: newId(), type: "exam", name: pdfName || "Quiz", date: Date.now(), text: pct + "% (" + right + "/" + qs.length + "), " + cfg.mode + (tTotal ? ", timed" : "")};
+  const rec = {qs, ans, flags, name: meta.name, mode: cfg.mode, tTotal, usedMs: tTotal ? Math.min(tEnd - tStart - pausedTotal, tTotal) : 0, timedOut, breaksTaken, pauseUsed};
+  if (putRecord(meta, rec)){ btn.textContent = "Saved ✓"; btn.disabled = true; } else btn.textContent = "Couldn’t save (storage full or blocked)";
+}
+function openRecord(id){
+  const m = getIndex().find(x => x.id === id), r = sGet("rec:" + id);
+  if (!m || !r){ note = "That saved item could not be opened."; renderStart(); return; }
+  stopTimer(); timedOut = false; pdfName = r.name; qs = r.qs; ans = r.ans; flags = r.flags || qs.map(() => false);
+  cfg.mode = r.mode;
+  if (m.type === "progress"){
+    Object.assign(cfg, {timer: r.timer, mpq: r.mpq, breakMin: r.breakMin, opts: r.opts});
+    i = r.i || 0; curId = attemptId = id; reviewOnly = false; fromLog = false; pausedTotal = 0; breaksTaken = r.breaksTaken || 0; pauseUsed = r.pauseUsed || 0;
+    brkTotal = r.brkTotal || 0; emergOn = !!r.emergOn; breaksLeft = r.breaksLeft || 0; pauseLeft = r.pauseLeft || 0;
+    tTotal = r.tTotal || 0; tStart = Date.now() - (tTotal ? tTotal - r.leftMs : 0); deadline = Date.now() + (r.leftMs || 0);
+    view = "quiz"; updateBar();
+    if (tTotal || brkTotal || emergOn){ tick(); if (!timedOut) tmr = setInterval(tick, 500); }
+  } else {
+    curId = null; reviewOnly = true; tTotal = r.tTotal || 0; tStart = 0; tEnd = r.usedMs || 0; pausedTotal = 0; timedOut = !!r.timedOut;
+    breaksTaken = r.breaksTaken || 0; pauseUsed = r.pauseUsed || 0; view = "result";
+  }
+  render();
+}
+const lockEligible = () => cfg.mode === "exam" && qs.length >= 100;
+const toHex = buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+async function hashPw(pw, saltHex){
+  if (!(window.crypto && crypto.subtle)) throw new Error("Password protection needs a secure page. Open the file directly or use localhost.");
+  const salt = Uint8Array.from(saltHex.match(/../g).map(x => parseInt(x, 16)));
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveBits"]);
+  return toHex(await crypto.subtle.deriveBits({name: "PBKDF2", salt, iterations: 150000, hash: "SHA-256"}, key, 256));
+}
+async function saveLocked(pw){
+  const salt = toHex(crypto.getRandomValues(new Uint8Array(16))), hash = await hashPw(pw, salt);
+  const right = ans.reduce((n, a, j) => n + (a === qs[j].answer ? 1 : 0), 0), pct = Math.round(right / qs.length * 100);
+  const meta = {id: newId(), type: "locked", name: pdfName || "Quiz", date: Date.now(), text: pct + "% (" + right + "/" + qs.length + ")" + (tTotal ? ", timed" : "")};
+  const rec = {qs, ans, flags, name: meta.name, mode: cfg.mode, tTotal, usedMs: tTotal ? Math.min(tEnd - tStart - pausedTotal, tTotal) : 0, timedOut, breaksTaken, pauseUsed, salt, hash};
+  const ok = putRecord(meta, rec);
+  if (ok && navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  return ok;
+}
+function permPanel(){
+  const box = el("div","perm");
+  const draw = state => {
+    box.innerHTML = "";
+    if (state === "ask"){
+      box.append(el("h2","","Save this mock exam log permanently?"),
+        el("p","note","It keeps every question with the correct answers, your answers and the explanations. You can view it any time, but deleting it needs a password you set now."));
+      const r = el("div","chips"), y = el("button","btn","Yes, save it"), n = el("button","btn ghost","No thanks");
+      y.onclick = () => draw("form"); n.onclick = () => draw("no"); r.append(y, n); box.appendChild(r);
+    } else if (state === "form"){
+      const a = el("input","num pw"), b = el("input","num pw"), msg = el("p","note"), row = el("div","pwrow");
+      a.type = b.type = "password"; a.placeholder = "Password"; b.placeholder = "Confirm password";
+      a.autocomplete = b.autocomplete = "new-password"; a.setAttribute("aria-label","Password"); b.setAttribute("aria-label","Confirm password");
+      const sb = el("button","btn","Save permanent log"), cb = el("button","btn ghost","Cancel");
+      cb.onclick = () => draw("ask");
+      sb.onclick = async () => {
+        if (a.value.length < 4){ msg.textContent = "Use at least 4 characters."; return; }
+        if (a.value !== b.value){ msg.textContent = "The two passwords don’t match."; return; }
+        sb.disabled = true; msg.textContent = "Saving…";
+        try { if (await saveLocked(a.value)) draw("done"); else { msg.textContent = "Couldn’t save. Browser storage may be full or blocked."; sb.disabled = false; } }
+        catch (e) { msg.textContent = e.message || "Couldn’t save."; sb.disabled = false; }
+      };
+      row.append(a, b);
+      const acts = el("div","chips"); acts.append(sb, cb);
+      box.append(el("h2","","Set a password"), row, acts, msg,
+        el("p","note","Keep it safe. A forgotten password can’t be recovered, and without it the log can’t be deleted here."));
+    } else if (state === "done"){
+      box.append(el("h2","","Saved permanently ✓"), el("p","note","Find it on the start screen under Permanent mock exam logs. Use Backup there to keep a copy as a file too."));
+    } else {
+      const r = el("div","chips"), b = el("button","chip sm","Save it after all"); b.onclick = () => draw("ask"); r.appendChild(b);
+      box.append(el("p","note","Not saved. This result is lost when you leave this page."), r);
+    }
+  };
+  draw("ask"); return box;
+}
+async function tryDelete(id, pw, msg){
+  const r = sGet("rec:" + id);
+  if (!r || !r.hash){ msg.textContent = "This log can’t be checked."; return; }
+  msg.textContent = "Checking…";
+  try { if (await hashPw(pw, r.salt) === r.hash){ delRecord(id); renderStart(); } else msg.textContent = "Wrong password."; }
+  catch (e) { msg.textContent = e.message || "Couldn’t check the password."; }
+}
+function exportRecord(id){
+  const m = getIndex().find(x => x.id === id), r = sGet("rec:" + id); if (!m || !r) return;
+  const a = el("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({format: "pdfquiz-log", version: 1, meta: m, rec: r})], {type: "application/json"}));
+  a.download = "mock-exam-" + new Date(m.date).toISOString().slice(0, 10) + "-" + m.id + ".json";
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+async function importLog(file, msg){
+  try {
+    const d = JSON.parse(await file.text());
+    if (d.format !== "pdfquiz-log" || !d.meta || d.meta.type !== "locked" || !d.rec || !d.rec.hash || !Array.isArray(d.rec.qs)) throw new Error("bad");
+    if (getIndex().some(m => m.id === d.meta.id)){ msg.textContent = "That log is already saved here."; return; }
+    if (!putRecord(d.meta, d.rec)){ msg.textContent = "Couldn’t save. Browser storage may be full or blocked."; return; }
+    renderStart();
+  } catch (e) { msg.textContent = "That file is not a valid mock exam backup."; }
+}
+function lockedSection(){
+  const idx = getIndex().filter(m => m.type === "locked");
+  const s = el("div","sec"); s.appendChild(el("h2","","🔒 Permanent mock exam logs"));
+  if (!idx.length) s.appendChild(el("p","note","None yet. After you submit a mock exam of 100 or more questions, you can save its log here."));
+  idx.forEach(m => {
+    const row = el("div","srow"), info = el("div","sinfo"), btns = el("div","chips"), msg = el("p","note");
+    info.append(el("b","","🔒 " + m.name), el("span","",m.text + " · " + when(m.date)), msg);
+    const view = el("button","chip sm","View"); view.onclick = () => openRecord(m.id);
+    const bk = el("button","chip sm","Backup"); bk.onclick = () => exportRecord(m.id);
+    const del = el("button","chip sm","Delete");
+    del.onclick = () => {
+      btns.innerHTML = "";
+      const pw = el("input","num pw"); pw.type = "password"; pw.placeholder = "Password to delete"; pw.setAttribute("aria-label","Password to delete"); pw.autocomplete = "current-password";
+      const go = el("button","chip sm","Delete log"), no = el("button","chip sm","Cancel");
+      go.onclick = () => tryDelete(m.id, pw.value, msg); no.onclick = () => renderStart();
+      pw.onkeydown = e => { if (e.key === "Enter") go.click(); };
+      btns.append(pw, go, no); pw.focus();
+    };
+    btns.append(view, bk, del); row.append(info, btns); s.appendChild(row);
+  });
+  const imp = el("input"); imp.type = "file"; imp.accept = "application/json,.json"; imp.className = "hide";
+  const msg2 = el("p","note"), ib = el("button","chip sm","Import a backup");
+  imp.onchange = () => { if (imp.files[0]) importLog(imp.files[0], msg2); };
+  ib.onclick = () => imp.click(); s.append(ib, imp, msg2);
+  return s;
+}
+// ---------- Exam Log: every finished exam, stored in your cloud account ----------
+const logAll = () => Cloud.attemptsList();
+const logPut = a => Cloud.attemptPut(a);
+const logDel = id => Cloud.attemptDel(id);
+const logClear = () => Cloud.attemptsClear();
+const metaGet = k => Cloud.userGet().then(u => (k === "auth" && u && u.logAuth) ? {k, salt: u.logAuth.salt, hash: u.logAuth.hash} : undefined);
+const metaPut = v => Cloud.userSet({logAuth: {salt: v.salt, hash: v.hash}});
+const hasLogPw = () => metaGet("auth").then(a => !!a);
+async function setLogPw(pw){
+  const salt = toHex(crypto.getRandomValues(new Uint8Array(16)));
+  await metaPut({k: "auth", salt, hash: await hashPw(pw, salt)});
+}
+async function checkLogPw(pw){
+  const a = await metaGet("auth"); if (!a) return false;
+  return (await hashPw(pw, a.salt)) === a.hash;
+}
+function attemptFromSession(id){
+  const right = ans.reduce((n, a, j) => n + (a === qs[j].answer ? 1 : 0), 0);
+  const wrong = ans.reduce((n, a, j) => n + (a !== null && a !== qs[j].answer ? 1 : 0), 0);
+  const fl = flags.filter(Boolean).length, flRight = qs.reduce((n, q, j) => n + (flags[j] && ans[j] === q.answer ? 1 : 0), 0);
+  return {id, ts: Date.now(), name: pdfName || "Quiz", mode: cfg.mode, timed: tTotal > 0, tTotal, usedMs: tTotal ? Math.min(tEnd - tStart - pausedTotal, tTotal) : 0,
+    timedOut, breaksTaken, pauseUsed, total: qs.length, correct: right, wrong, skipped: qs.length - right - wrong, pct: Math.round(right / qs.length * 100),
+    flagged: fl, flaggedRight: flRight, qs, ans, flags};
+}
+function formDialog(title, desc, fields, okLabel, handler){
+  const ov = el("div","dlg"), box = el("div","dlgbox"), msg = el("p","note");
+  ov.setAttribute("role","dialog"); ov.setAttribute("aria-modal","true");
+  box.appendChild(el("h2","",title)); if (desc) box.appendChild(el("p","note",desc));
+  const inputs = fields.map(f => { const o = typeof f === "string" ? {label: f, type: "password"} : f, i = el("input","num pw"); i.type = o.type; i.placeholder = o.label; i.setAttribute("aria-label", o.label); i.autocomplete = "off"; box.appendChild(i); return i; });
+  const row = el("div","chips"), ok = el("button","btn",okLabel), no = el("button","btn ghost","Cancel");
+  const onKey = e => { if (e.key === "Escape") close(); else if (e.key === "Enter") submit(); };
+  const close = () => { ov.remove(); document.removeEventListener("keydown", onKey); };
+  const submit = async () => {
+    if (ok.disabled) return; ok.disabled = true; msg.textContent = "Checking…"; let err;
+    try { err = await handler(inputs.map(i => i.value)); } catch (e) { err = (e && e.message) || "Something went wrong."; }
+    if (err){ msg.textContent = err; ok.disabled = false; } else close();
+  };
+  ok.onclick = submit; no.onclick = close; document.addEventListener("keydown", onKey);
+  row.append(ok, no); box.append(row, msg); ov.appendChild(box); document.body.appendChild(ov); if (inputs[0]) inputs[0].focus(); else ok.focus();
+}
+function newPwDialog(done){
+  formDialog("Create your log password", "You will need it to delete entries or clear the Exam Log. It can’t be recovered if you forget it.", ["New password (4+ characters)", "Confirm password"], "Create password",
+    async ([a, b]) => { if (a.length < 4) return "Use at least 4 characters."; if (a !== b) return "The two passwords don’t match."; await setLogPw(a); if (done) done(); });
+}
+function logBox(id){
+  const box = el("div","perm"); box.appendChild(el("p","note","Saving to your Exam Log…"));
+  const p = logProm[id] || (logProm[id] = logPut(attemptFromSession(id)).then(() => true));
+  p.then(async () => {
+    box.innerHTML = ""; box.appendChild(el("h2","","Saved to your Exam Log ✓"));
+    const open = el("button","chip sm","Open Exam Log"); open.onclick = () => { fromLog = false; view = "log"; render(); };
+    let has = true; try { has = await hasLogPw(); } catch (e) {}
+    if (has){ box.append(el("p","note","This exam, with every answer and result, is now in your log. Deleting it needs your log password."), open); return; }
+    box.appendChild(el("p","note","Create a password now. It is needed to delete entries or clear the log, so nobody can wipe your history by accident."));
+    const a = el("input","num pw"), b = el("input","num pw"), msg = el("p","note"), row = el("div","pwrow"), acts = el("div","chips");
+    a.type = b.type = "password"; a.placeholder = "New password (4+ characters)"; b.placeholder = "Confirm password"; a.autocomplete = b.autocomplete = "new-password";
+    a.setAttribute("aria-label","New password"); b.setAttribute("aria-label","Confirm password");
+    const go = el("button","btn","Create password"), later = el("button","btn ghost","Not now");
+    go.onclick = async () => {
+      if (a.value.length < 4){ msg.textContent = "Use at least 4 characters."; return; }
+      if (a.value !== b.value){ msg.textContent = "The two passwords don’t match."; return; }
+      go.disabled = true; try { await setLogPw(a.value); box.innerHTML = ""; box.append(el("h2","","Saved to your Exam Log ✓"), el("p","note","Password created. Keep it safe: a forgotten password can’t be recovered."), open); }
+      catch (e) { msg.textContent = (e && e.message) || "Couldn’t create the password."; go.disabled = false; }
+    };
+    later.onclick = () => { box.innerHTML = ""; box.append(el("h2","","Saved to your Exam Log ✓"), el("p","note","No password yet, so entries can’t be deleted until you create one from the Exam Log page."), open); };
+    row.append(a, b); acts.append(go, later); box.append(row, acts, msg);
+  }, e => { box.innerHTML = ""; box.append(el("h2","","Couldn’t save to the Exam Log"), el("p","note", (e && e.message) || "Browser storage may be blocked.")); });
+  return box;
+}
+function flaggedSection(){
+  const idx = qs.map((q, j) => j).filter(j => flags[j]); if (!idx.length) return null;
+  const rightIdx = idx.filter(j => ans[j] === qs[j].answer), wrongIdx = idx.filter(j => ans[j] !== qs[j].answer);
+  const box = el("div","flbox"); box.appendChild(el("h2","","Flagged questions"));
+  const mk = (title, hint, arr, open) => {
+    const d = el("details","fl"); d.open = open; d.appendChild(el("summary","", title + " (" + arr.length + ")")); d.appendChild(el("p","note", hint));
+    if (!arr.length) d.appendChild(el("p","note","None.")); arr.forEach(j => d.appendChild(reviewItem(qs[j], j))); return d;
+  };
+  box.append(mk("⚑ Flagged and answered correctly", "You weren’t sure about these, but you got them right. Look them over so the answers are knowledge, not luck.", rightIdx, rightIdx.length > 0),
+    mk("⚑ Flagged and answered wrong or left blank", "These doubts did not work out. Worth another pass.", wrongIdx, false));
+  return box;
+}
+async function openAttempt(a){
+  if (!a.qs){ try { Object.assign(a, await Cloud.attemptPayload(a.id)); } catch (e) { formDialog("Couldn’t open this entry", (e && e.message) || "Its details could not be loaded.", [], "OK", async () => {}); return; } }
+  stopTimer(); timedOut = !!a.timedOut; pdfName = a.name; qs = a.qs; ans = a.ans; flags = a.flags || qs.map(() => false);
+  cfg.mode = a.mode; curId = null; attemptId = null; reviewOnly = true; fromLog = true;
+  tTotal = a.tTotal || 0; tStart = 0; tEnd = a.usedMs || 0; pausedTotal = 0; breaksTaken = a.breaksTaken || 0; pauseUsed = a.pauseUsed || 0;
+  view = "result"; render();
+}
+async function renderLog(){
+  stopTimer(); $("side").classList.add("hide"); $("fill").style.width = "0"; main.innerHTML = "";
+  const backBtn = el("button","btn ghost","‹ Back"); backBtn.style.marginBottom = "16px"; backBtn.onclick = () => { view = "start"; render(); };
+  main.append(backBtn, el("br"), el("span","eyebrow","Your history"), el("h1","","Exam Log"),
+    el("p","sub","Every exam or practice test you finish is stored here automatically, with your answers, what was right and wrong, and your flagged questions. Open any entry whenever you like. Deleting or clearing needs the password you create."));
+  const body = el("div",""); main.appendChild(body); body.appendChild(el("p","note","Loading…"));
+  let list, hasPw;
+  try { list = (await logAll()).sort((a, b) => b.ts - a.ts); hasPw = await hasLogPw(); }
+  catch (e) { if (view !== "log") return; body.innerHTML = ""; body.append(el("p","note",(e && e.message) || "The Exam Log is not available in this browser.")); return; }
+  if (view !== "log") return;
+  body.innerHTML = "";
+  const n = list.length, avg = n ? Math.round(list.reduce((s, a) => s + a.pct, 0) / n) : 0, best = n ? Math.max(...list.map(a => a.pct)) : 0;
+  const tiles = el("div","tiles");
+  [["", n, "Entries"], ["", n ? avg + "%" : "–", "Average score"], ["g", n ? best + "%" : "–", "Best score"], ["", list.reduce((s, a) => s + (a.flaggedRight || 0), 0), "Flagged & right"]].forEach(([c, v, l]) => { const t = el("div","tile " + c); t.append(el("b","",String(v)), el("span","",l)); tiles.appendChild(t); });
+  body.appendChild(tiles);
+  const bar = el("div","chips"); bar.style.margin = "18px 0 12px";
+  const nExam = list.filter(a => a.mode === "exam").length, nPrac = n - nExam;
+  [["all","All (" + n + ")"], ["exam","Exams (" + nExam + ")"], ["practice","Practice (" + nPrac + ")"]].forEach(([v, l]) => {
+    const b = el("button","chip",l); b.setAttribute("aria-pressed", logFilter === v); b.onclick = () => { logFilter = v; renderLog(); }; bar.appendChild(b);
+  });
+  const sp = el("span",""); sp.style.flex = "1"; bar.appendChild(sp);
+  const pwb = el("button","chip sm", hasPw ? "Change password" : "Create password");
+  pwb.onclick = () => hasPw
+    ? formDialog("Change log password", "", ["Current password", "New password (4+ characters)", "Confirm new password"], "Change password", async ([o, a, b]) => {
+        if (!(await checkLogPw(o))) return "The current password is wrong."; if (a.length < 4) return "Use at least 4 characters."; if (a !== b) return "The two new passwords don’t match."; await setLogPw(a); })
+    : newPwDialog(() => renderLog());
+  const clr = el("button","chip sm","Clear entire log"); clr.disabled = !n;
+  clr.onclick = () => !hasPw ? newPwDialog(() => renderLog())
+    : formDialog("Clear the entire Exam Log?", "This permanently deletes all " + n + " entries. Enter your log password to continue.", ["Log password"], "Clear log", async ([pw]) => { if (!(await checkLogPw(pw))) return "Wrong password."; await logClear(); renderLog(); });
+  bar.append(pwb, clr); body.appendChild(bar);
+  const shown = list.filter(a => logFilter === "all" || a.mode === logFilter);
+  if (!shown.length) body.appendChild(el("p","note", n ? "No entries match this filter." : "No exams logged yet. Finish an exam or practice test and it will appear here automatically."));
+  shown.forEach(a => {
+    const row = el("div","lrow"), info = el("div","linfo"), btns = el("div","chips");
+    const sc = el("div","lscore " + (a.pct >= 70 ? "pass" : "fail"), a.pct + "%");
+    const cnt = el("div","lcounts");
+    [["✓ " + a.correct + " correct"], ["✕ " + a.wrong + " wrong"], ["– " + a.skipped + " unanswered"]].forEach(([t]) => cnt.appendChild(el("span","",t)));
+    if (a.flagged) cnt.appendChild(el("span","","⚑ " + a.flagged + " flagged (" + a.flaggedRight + " right)"));
+    info.append(el("b","",a.name), el("span","", when(a.ts) + " · " + (a.mode === "exam" ? "Exam" : "Practice") + (a.timed ? " · timed" + (a.timedOut ? " (time ran out)" : "") : "") + " · " + a.total + " question" + (a.total === 1 ? "" : "s")), cnt);
+    const view1 = el("button","chip sm","View"); view1.onclick = () => openAttempt(a);
+    const del = el("button","chip sm","Delete");
+    del.onclick = () => !hasPw ? newPwDialog(() => renderLog())
+      : formDialog("Delete this entry?", "Enter your log password to delete “" + a.name + "” from " + when(a.ts) + ".", ["Log password"], "Delete", async ([pw]) => { if (!(await checkLogPw(pw))) return "Wrong password."; await logDel(a.id); renderLog(); });
+    btns.append(view1, del); row.append(sc, info, btns); body.appendChild(row);
+  });
+  body.appendChild(el("p","note","Passwords only guard the delete buttons on this page. The log lives in this browser, so clearing the browser’s site data would still erase it."));
+}
+function logSummaryRow(){
+  const s = el("div","sec"), row = el("div","srow"), info = el("div","sinfo"), btns = el("div","chips"), line = el("span","","Loading…");
+  info.append(el("b","","Everything you have finished"), line);
+  const open = el("button","chip sm","Open Exam Log"); open.onclick = () => { view = "log"; render(); };
+  btns.appendChild(open); row.append(info, btns); s.append(el("h2","","Exam Log"), row);
+  logAll().then(l => { line.textContent = l.length ? l.length + " logged · average " + Math.round(l.reduce((t, a) => t + a.pct, 0) / l.length) + "%" : "Nothing yet. Finished exams are added automatically."; }, () => { s.style.display = "none"; });
+  return s;
+}
+// ======================================================================
+//  ONLINE APP: Google sign-in + cloud sync (Firebase Auth + Firestore)
+//  1) Paste your Firebase web-app config below (README.md explains where to find it).
+//  2) Until you do, the page shows a setup screen and a device-only demo mode.
+// ======================================================================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBLJO7QrjoOF0tsQoZBrlZt9IXUl99R7ag",
+  authDomain: "quiz-studio-online.firebaseapp.com",
+  projectId: "quiz-studio-online",
+  appId: "1:333925002848:web:68165841c90fd93761dd05"
+};
+const FB_VERSION = "10.12.2";
+const configured = !/^PASTE/.test(FIREBASE_CONFIG.apiKey) && !/^PASTE/.test(FIREBASE_CONFIG.projectId);
+const wantDemo = /[?&]demo(=1)?(&|$)/.test(location.search);
+
+const DEFAULT_CFG = {count:100, start:1, mode:"exam", order:"original", opts:"keep", timer:"off", mpq:2.4, breaks:0, breakMin:10, emerg:"off"};
+let Cloud = null, currentUser = null, authReady = false, authMsg = "";
+const byteLen = s => new TextEncoder().encode(s).length;
+const b64 = u8 => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function gz(str){ const cs = new CompressionStream("gzip"), w = cs.writable.getWriter(); w.write(new TextEncoder().encode(str)); w.close(); return b64(new Uint8Array(await new Response(cs.readable).arrayBuffer())); }
+async function ungz(s){ const ds = new DecompressionStream("gzip"), w = ds.writable.getWriter(); w.write(unb64(s)); w.close(); return new TextDecoder().decode(await new Response(ds.readable).arrayBuffer()); }
+const pack = async s => byteLen(s) < 500000 ? {v: s} : {z: await gz(s)};
+const unpack = async d => d.z ? ungz(d.z) : d.v;
+const hash32 = s => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
+
+// ----- sync status light -----
+let syncPending = 0;
+function setSync(s){
+  const t = (Cloud && Cloud.mode === "demo") ? "Demo mode: stored on this device only" : ({idle: "Connected to the cloud", syncing: "Saving to the cloud…", synced: "All changes saved to the cloud", error: "Can’t reach the cloud right now. Changes will sync when you are back online."}[s] || "");
+  const d = $("sync"); if (d){ d.className = "sync " + s; d.title = t; }
+  const l = $("syncline"); if (l) l.textContent = "☁ " + t;
+}
+const track = p => { syncPending++; setSync("syncing"); return Promise.resolve(p).then(v => { if (--syncPending === 0) setSync("synced"); return v; }, e => { if (--syncPending === 0) setSync("error"); throw e; }); };
+window.addEventListener("offline", () => setSync("error"));
+window.addEventListener("online", () => setSync(syncPending ? "syncing" : "synced"));
+
+// ----- Firebase (the real thing) -----
+const FirebaseCloud = {
+  mode: "firebase", uid: null, pend: new Map(), tm: null,
+  async init(onUser){
+    const base = "https://www.gstatic.com/firebasejs/" + FB_VERSION + "/";
+    const [A, Au, F] = await Promise.all([import(base + "firebase-app.js"), import(base + "firebase-auth.js"), import(base + "firebase-firestore.js")]);
+    this.Au = Au; this.F = F;
+    this.app = A.initializeApp(FIREBASE_CONFIG);
+    this.auth = Au.getAuth(this.app);
+    try { this.db = F.initializeFirestore(this.app, {localCache: F.persistentLocalCache({tabManager: F.persistentMultipleTabManager()})}); }
+    catch (e) { this.db = F.getFirestore(this.app); }
+    Au.onAuthStateChanged(this.auth, u => {
+      this.uid = u ? u.uid : null;
+      onUser(u ? {uid: u.uid, name: u.displayName || (u.email || "").split("@")[0] || "Student", email: u.email || "", photo: u.photoURL || ""} : null);
+    });
+  },
+  async signIn(){
+    const p = new this.Au.GoogleAuthProvider(); p.setCustomParameters({prompt: "select_account"});
+    try { await this.Au.signInWithPopup(this.auth, p); }
+    catch (e) { if (e && (e.code === "auth/popup-blocked" || e.code === "auth/operation-not-supported-in-this-environment")) await this.Au.signInWithRedirect(this.auth, p); else throw e; }
+  },
+  async signOut(){ await this.Au.signOut(this.auth); },
+  dref(col, id){ return this.F.doc(this.db, "users", this.uid, col, id); },
+  col(name){ return this.F.collection(this.db, "users", this.uid, name); },
+  uref(){ return this.F.doc(this.db, "users", this.uid); },
+  touchProfile(u){ this.F.setDoc(this.uref(), {name: u.name, email: u.email, photo: u.photo, lastLogin: Date.now()}, {merge: true}).catch(() => {}); },
+  async kvLoad(){
+    const snap = await this.F.getDocs(this.col("kv")), m = new Map();
+    for (const d of snap.docs){ const x = d.data(); m.set(x.k, await unpack(x)); }
+    return m;
+  },
+  kvSet(key, s){ this.pend.set(key, s); this.sched(); },
+  kvDel(key){ this.pend.set(key, null); this.sched(); },
+  sched(){ clearTimeout(this.tm); this.tm = setTimeout(() => this.flush(), 1500); },
+  flush(){
+    clearTimeout(this.tm); if (!this.uid || !this.pend.size) return Promise.resolve();
+    const F = this.F, jobs = [], entries = Array.from(this.pend.entries()); this.pend.clear();
+    entries.forEach(([key, s]) => {
+      const ref = this.dref("kv", key.replace(/:/g, "__"));
+      if (s === null) jobs.push(track(F.deleteDoc(ref)));
+      else if (byteLen(s) < 500000) jobs.push(track(F.setDoc(ref, {k: key, v: s, t: Date.now()})));
+      else jobs.push(track(pack(s).then(x => F.setDoc(ref, Object.assign({k: key, t: Date.now()}, x)))));
+    });
+    return Promise.all(jobs).catch(() => {});
+  },
+  async attemptsList(){ const s = await this.F.getDocs(this.col("attempts")); return s.docs.map(d => d.data()); },
+  async attemptPut(a){
+    const meta = JSON.parse(JSON.stringify(Object.assign({}, a, {qs: undefined, ans: undefined, flags: undefined})));
+    const body = await pack(JSON.stringify({qs: a.qs, ans: a.ans, flags: a.flags}));
+    const b = this.F.writeBatch(this.db); b.set(this.dref("attempts", a.id), meta); b.set(this.dref("attemptdata", a.id), body);
+    await track(b.commit());
+  },
+  async attemptPayload(id){
+    const d = await this.F.getDoc(this.dref("attemptdata", id));
+    if (!d.exists()) throw new Error("The details of this entry are missing.");
+    return JSON.parse(await unpack(d.data()));
+  },
+  async attemptDel(id){ const b = this.F.writeBatch(this.db); b.delete(this.dref("attempts", id)); b.delete(this.dref("attemptdata", id)); await track(b.commit()); },
+  async wipe(names){
+    for (const name of names){
+      const snap = await this.F.getDocs(this.col(name)); let b = this.F.writeBatch(this.db), n = 0;
+      for (const d of snap.docs){ b.delete(d.ref); if (++n % 400 === 0){ await b.commit(); b = this.F.writeBatch(this.db); } }
+      await b.commit();
+    }
+  },
+  async attemptsClear(){ await track(this.wipe(["attempts", "attemptdata"])); },
+  async userGet(){ const d = await this.F.getDoc(this.uref()); return d.exists() ? d.data() : null; },
+  userSet(o){ return track(this.F.setDoc(this.uref(), o, {merge: true})); },
+  async bankPut(id, items){ await track(this.F.setDoc(this.dref("bankdata", id), await pack(JSON.stringify(items)))); },
+  async bankGet(id){ const d = await this.F.getDoc(this.dref("bankdata", id)); if (!d.exists()) throw new Error("This question set is missing from the cloud."); return JSON.parse(await unpack(d.data())); },
+  async bankDel(id){ await track(this.F.deleteDoc(this.dref("bankdata", id))); },
+  async deleteAll(){ await this.flush(); await track(this.wipe(["kv", "attempts", "attemptdata", "bankdata"])); await this.F.deleteDoc(this.uref()); }
+};
+
+// ----- Demo mode (stored only on this device, no Google needed) -----
+const DemoCloud = {
+  mode: "demo", P: "pdfquiz-online-demo:", user: {uid: "demo", name: "Demo user", email: "demo mode · this device only", photo: ""},
+  async init(onUser){ this.onUser = onUser; onUser(localStorage.getItem(this.P + "signedin") ? this.user : null); },
+  async signIn(){ localStorage.setItem(this.P + "signedin", "1"); this.onUser(this.user); },
+  async signOut(){ localStorage.removeItem(this.P + "signedin"); this.onUser(null); },
+  keys(pre){ return Object.keys(localStorage).filter(k => k.startsWith(this.P + pre)); },
+  async kvLoad(){ const m = new Map(); this.keys("kv:").forEach(k => m.set(k.slice((this.P + "kv:").length), localStorage.getItem(k))); return m; },
+  kvSet(k, s){ localStorage.setItem(this.P + "kv:" + k, s); }, kvDel(k){ localStorage.removeItem(this.P + "kv:" + k); }, flush(){ return Promise.resolve(); },
+  touchProfile(){},
+  async attemptsList(){ return this.keys("attempt:").map(k => JSON.parse(localStorage.getItem(k))); },
+  async attemptPut(a){ const {qs, ans, flags, ...meta} = a; localStorage.setItem(this.P + "attempt:" + a.id, JSON.stringify(meta)); localStorage.setItem(this.P + "attemptdata:" + a.id, JSON.stringify({qs, ans, flags})); },
+  async attemptPayload(id){ const s = localStorage.getItem(this.P + "attemptdata:" + id); if (!s) throw new Error("The details of this entry are missing."); return JSON.parse(s); },
+  async attemptDel(id){ localStorage.removeItem(this.P + "attempt:" + id); localStorage.removeItem(this.P + "attemptdata:" + id); },
+  async attemptsClear(){ this.keys("attempt").forEach(k => localStorage.removeItem(k)); },
+  async userGet(){ const s = localStorage.getItem(this.P + "user"); return s ? JSON.parse(s) : null; },
+  async userSet(o){ localStorage.setItem(this.P + "user", JSON.stringify(Object.assign((await this.userGet()) || {}, o))); },
+  async bankPut(id, items){ localStorage.setItem(this.P + "bank:" + id, JSON.stringify(items)); },
+  async bankGet(id){ const s = localStorage.getItem(this.P + "bank:" + id); if (!s) throw new Error("This question set is missing."); return JSON.parse(s); },
+  async bankDel(id){ localStorage.removeItem(this.P + "bank:" + id); },
+  async deleteAll(){ Object.keys(localStorage).filter(k => k.startsWith(this.P) && k !== this.P + "signedin").forEach(k => localStorage.removeItem(k)); }
+};
+
+// ----- app wiring -----
+function resetAppState(){
+  stopTimer(); tTotal = 0; ALL = []; pdfName = ""; note = ""; qs = []; ans = []; flags = []; i = 0;
+  curId = attemptId = null; reviewOnly = false; fromLog = false; logFilter = "all"; cfg = Object.assign({}, DEFAULT_CFG);
+  Object.keys(logProm).forEach(k => delete logProm[k]);
+  document.querySelectorAll(".dlg").forEach(n => n.remove());
+}
+function updateUserUI(){
+  $("userwrap").classList.toggle("hide", !currentUser);
+  if (!currentUser) return;
+  $("uname").textContent = currentUser.name; $("userbtn").setAttribute("aria-label", "Account: " + currentUser.name);
+  const av = $("uav"); av.textContent = "";
+  if (currentUser.photo){ const im = document.createElement("img"); im.alt = ""; im.referrerPolicy = "no-referrer"; im.src = currentUser.photo; im.onerror = () => { av.textContent = currentUser.name.charAt(0).toUpperCase(); }; av.appendChild(im); }
+  else av.textContent = currentUser.name.charAt(0).toUpperCase();
+}
+async function onUserChanged(u){
+  authReady = true;
+  if (!u){ currentUser = null; kvCache.clear(); resetAppState(); view = "auth"; updateUserUI(); render(); return; }
+  if (currentUser && currentUser.uid === u.uid) return;
+  currentUser = u; authMsg = ""; view = "loading"; updateUserUI(); render();
+  try { const m = await Cloud.kvLoad(); kvCache.clear(); m.forEach((v, k) => kvCache.set(k, v)); setSync("synced"); }
+  catch (e) { authMsg = "Couldn’t load your data: " + ((e && e.message) || e) + (/permission/i.test((e && e.message) || "") ? " (check the Firestore rules in the README)" : ""); currentUser = null; view = "auth"; updateUserUI(); render(); return; }
+  resetAppState(); view = "start"; Cloud.touchProfile(u); render();
+}
+const authErrors = {
+  "auth/popup-closed-by-user": "The sign-in window was closed before finishing.",
+  "auth/cancelled-popup-request": "Another sign-in window was already open. Try again.",
+  "auth/unauthorized-domain": "This website address isn’t allowed in Firebase yet. Add it under Authentication → Settings → Authorized domains (see the README).",
+  "auth/operation-not-allowed": "Google sign-in isn’t switched on in Firebase yet (Authentication → Sign-in method → Google).",
+  "auth/network-request-failed": "No internet connection. Check your network and try again.",
+  "auth/internal-error": "Firebase reported an internal error. Check the config values you pasted."
+};
+async function signInClick(btn){
+  authMsg = ""; if (btn) btn.disabled = true;
+  try { await Cloud.signIn(); } catch (e) { authMsg = authErrors[e && e.code] || ("Sign-in failed: " + ((e && e.message) || e)); render(); }
+  finally { if (btn) btn.disabled = false; }
+}
+async function signOutNow(){
+  if (currentUser && (view === "quiz" || view === "confirm")) autoSave();
+  closeUserMenu(); try { await Cloud.flush(); } catch (e) {}
+  await Cloud.signOut();
+}
+async function startOnline(){
+  view = "loading"; render();
+  const demoOn = wantDemo || (!configured && !!localStorage.getItem(DemoCloud.P + "signedin"));
+  if (!configured && !demoOn){ authReady = true; Cloud = null; view = "auth"; render(); return; }
+  Cloud = demoOn ? DemoCloud : FirebaseCloud;
+  try { await Cloud.init(onUserChanged); }
+  catch (e) { authReady = true; authMsg = "Couldn’t load the Google/Firebase libraries. Check your internet connection and reload."; view = "auth"; render(); }
+}
+function renderLoading(){
+  stopTimer(); $("side").classList.add("hide"); main.innerHTML = "";
+  const w = el("div",""); w.style.textAlign = "center"; w.style.padding = "30px 0";
+  w.append(el("div","spin"), el("p","sub", authReady ? "Loading your data…" : "Checking sign-in…")); main.appendChild(w);
+}
+const G_LOGO = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+function renderAuth(){
+  stopTimer(); $("side").classList.add("hide"); $("fill").style.width = "0"; main.innerHTML = "";
+  const side = el("div","authside"), art = el("div","authart"), list = el("ul","authlist");
+  art.setAttribute("aria-hidden","true"); art.innerHTML = HERO[curTheme()];
+  ["Your results and Exam Log follow you to any device","Upload a question file once, practice anywhere","Pick up an unfinished exam on another device"].forEach(t => list.appendChild(el("li","",t)));
+  side.append(el("h2","","Practice smarter"), art, list);
+  const form = el("div","authform");
+  if (Cloud && Cloud.mode === "demo"){
+    form.append(el("h1","","Demo mode"), el("p","sub","Everything here is stored only on this device. Nothing is sent anywhere, and nothing syncs between devices."));
+    const open = el("button","btn","Open demo mode"); open.style.width = "100%"; open.onclick = () => Cloud.signIn();
+    form.append(open, el("p","note","To use Google sign-in and sync across devices, connect Firebase as described in README.md."));
+  } else if (!Cloud && !configured){
+    form.append(el("h1","","Almost there"), el("p","sub","This copy isn’t connected to Firebase yet, so Google sign-in is switched off."));
+    const ol = el("ol","setup");
+    ["Follow the short steps in README.md (about 10 minutes, free).","Paste your Firebase web config into the FIREBASE_CONFIG block near the top of the script in index.html.","Upload index.html to GitHub Pages and open your link."].forEach(t => ol.appendChild(el("li","",t)));
+    const demo = el("button","btn ghost","Try demo mode (stored on this device only)"); demo.style.width = "100%"; demo.style.marginTop = "14px";
+    demo.onclick = async () => { Cloud = DemoCloud; await Cloud.init(onUserChanged); await Cloud.signIn(); };
+    form.append(ol, demo, el("p","note","Demo mode lets you try everything without Google. Nothing is sent anywhere, and nothing syncs between devices."));
+  } else {
+    form.append(el("h1","","Welcome"), el("p","sub","Sign in with your Google account (Gmail) to keep your exams, results and question sets online."));
+    const g = el("button","gbtn"); g.innerHTML = G_LOGO; g.appendChild(el("span","","Continue with Google")); g.onclick = () => signInClick(g);
+    const msg = el("p","note"); msg.setAttribute("role","alert"); msg.textContent = authMsg;
+    form.append(g, msg, el("p","note","We only read your name, email address and profile photo, to show who is signed in. Your questions and results are saved in your own private space, and only you can open them."));
+    if (wantDemo) form.appendChild(el("p","note","Demo mode is on: everything stays on this device."));
+  }
+  main.append(side, form);
+}
+function closeUserMenu(){ $("userlist").classList.add("hide"); $("userbtn").setAttribute("aria-expanded","false"); }
+function openUserMenu(){
+  const l = $("userlist"); l.innerHTML = "";
+  l.appendChild(el("p","uhead","Signed in as " + (currentUser.email || currentUser.name)));
+  const sl = el("p","uhead"); sl.id = "syncline"; l.appendChild(sl); setSync(syncState());
+  const out = el("button","th-opt","Sign out"); out.setAttribute("role","menuitem"); out.onclick = signOutNow;
+  const del = el("button","th-opt","Delete my online data…"); del.setAttribute("role","menuitem");
+  del.onclick = () => { closeUserMenu(); formDialog("Delete all your online data?", "This permanently deletes your Exam Log, saved exams, unfinished progress and library from the cloud. Type DELETE to confirm.", [{label: "Type DELETE", type: "text"}], "Delete everything",
+    async ([t]) => { if (t.trim() !== "DELETE") return "Type the word DELETE exactly."; await Cloud.deleteAll(); kvCache.clear(); await signOutNow(); }); };
+  l.append(out, del); l.classList.remove("hide"); $("userbtn").setAttribute("aria-expanded","true"); out.focus();
+}
+function syncState(){ const d = $("sync"); return d ? (d.className.split(" ")[1] || "idle") : "idle"; }
+$("userbtn").onclick = e => { e.stopPropagation(); if ($("userlist").classList.contains("hide")) openUserMenu(); else closeUserMenu(); };
+document.addEventListener("click", e => { if (!$("userwrap").contains(e.target)) closeUserMenu(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("userlist").classList.contains("hide")){ closeUserMenu(); $("userbtn").focus(); } });
+window.addEventListener("pagehide", () => { if (Cloud && Cloud.flush) Cloud.flush(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden && Cloud && Cloud.flush) Cloud.flush(); });
+
+// ----- My library: question sets saved to your account -----
+async function libSave(name, kind, items){
+  const id = "b" + hash32(name + "|" + items.map(q => q.n + q.q).join("|"));
+  try {
+    await Cloud.bankPut(id, items);
+    sSet("lib", [{id, name, kind, count: items.length, date: Date.now()}].concat((sGet("lib") || []).filter(x => x.id !== id)));
+    return true;
+  } catch (e) { return false; }
+}
+function libSection(){
+  const s = el("div","sec"); s.appendChild(el("h2","","My library"));
+  const idx = sGet("lib") || [];
+  if (!idx.length){ s.appendChild(el("p","note","Question files you upload are saved here automatically, so you can use them on any device without uploading again.")); return s; }
+  idx.forEach(m => {
+    const row = el("div","srow"), info = el("div","sinfo"), btns = el("div","chips"), msg = el("span","");
+    info.append(el("b","",m.name), el("span","", m.count + " questions · " + m.kind + " · " + when(m.date)), msg);
+    const use = el("button","chip sm","Use this set");
+    use.onclick = async () => {
+      use.disabled = true; msg.textContent = "Loading…";
+      try { const items = await Cloud.bankGet(m.id); ALL = items; pdfName = m.name; docKind = m.kind; cfg.count = ALL.length; cfg.start = 1; note = "Loaded " + m.name + " from your library (" + ALL.length + " questions)."; renderStart(); }
+      catch (e) { msg.textContent = (e && e.message) || "Couldn’t load this set."; use.disabled = false; }
+    };
+    const del = el("button","chip sm","Remove");
+    del.onclick = async () => { if (del.dataset.sure){ try { await Cloud.bankDel(m.id); } catch (e) {} sSet("lib", (sGet("lib") || []).filter(x => x.id !== m.id)); renderStart(); } else { del.dataset.sure = "1"; del.textContent = "Click again to remove"; } };
+    btns.append(use, del); row.append(info, btns); s.appendChild(row);
+  });
+  return s;
+}
+
+function savedSection(){
+  const idx = getIndex().filter(m => m.type !== "locked"); if (!idx.length) return null;
+  const s = el("div","sec"); s.appendChild(el("h2","","Saved progress and exams"));
+  idx.forEach(m => {
+    const row = el("div","srow"), info = el("div","sinfo"), btns = el("div","chips");
+    info.append(el("b","",(m.type === "progress" ? "In progress: " : "Finished: ") + m.name), el("span","",m.text + " · " + when(m.date)));
+    const open = el("button","chip sm", m.type === "progress" ? "Resume" : "Review"); open.onclick = () => openRecord(m.id);
+    const del = el("button","chip sm","Delete");
+    del.onclick = () => { if (del.dataset.sure){ delRecord(m.id); if (curId === m.id) curId = null; renderStart(); } else { del.dataset.sure = "1"; del.textContent = "Click again to delete"; } };
+    btns.append(open, del); row.append(info, btns); s.appendChild(row);
+  });
+  return s;
+}
+function keepChoiceOrder(q){
+  const t = q.options.join(" | ");
+  return /\b(all|none|neither|both)\b[^|]*\b(above|these|them|of the)\b/i.test(t) || /\b[A-D]\s*(and|&|,)\s*[A-D]\b/.test(t)
+    || /\b(option|choice)s?\s*\(?[A-D]\b/i.test(t + " " + q.explanation)
+    || /(^|\n)\s*[•\-*]?\s*\(?[A-D]\)?\s*(is|are|=|:|–)\s/.test(q.explanation);
+}
+function shuffleChoices(q){
+  if (keepChoiceOrder(q)) return q;
+  const order = shuffle(q.options.map((_, k) => k));
+  return Object.assign({}, q, {options: order.map(k => q.options[k]), answer: order.indexOf(q.answer)});
+}
+function start(){
+  const {pool, c} = plan(); if (!pool.length) return;
+  const pick = (cfg.order === "shuffle" ? shuffle(pool) : pool).slice(0, c);
+  qs = cfg.opts === "shuffle" ? pick.map(shuffleChoices) : pick;
+  ans = qs.map(()=>null); flags = qs.map(()=>false); i = 0; view = "quiz"; curId = attemptId = newId(); reviewOnly = false; fromLog = false; beginTimer(qs.length); render();
+}
+
+function renderGrid(){
+  const g = $("grid"); g.innerHTML = "";
+  qs.forEach((q,j) => {
+    const b = el("button","cell",String(j+1));
+    if(ans[j] !== null) b.classList.add("a");
+    if(flags[j]) b.classList.add("f");
+    if(j === i) b.classList.add("cur");
+    b.setAttribute("aria-label","Question "+(j+1)+(ans[j]!==null?", answered":"")+(flags[j]?", flagged":""));
+    if(j === i) b.setAttribute("aria-current","true");
+    b.onclick = () => { i = j; view = "quiz"; render(); };
+    g.appendChild(b);
+  });
+  const done = ans.filter(a => a !== null).length, fl = flags.filter(Boolean).length;
+  $("rprog").style.strokeDashoffset = (2 * Math.PI * 52 * (1 - done / Math.max(1, qs.length))).toFixed(1);
+  $("rpct").textContent = Math.round(done / Math.max(1, qs.length) * 100) + "%";
+  $("rcnt").textContent = done + " of " + qs.length + " answered" + (fl ? " · " + fl + " flagged" : "");
+}
+
+function renderQuiz(){
+  const q = qs[i], picked = ans[i], practice = cfg.mode === "practice";
+  $("side").classList.remove("hide");
+  $("fill").style.width = (ans.filter(a=>a!==null).length/qs.length*100) + "%";
+  main.innerHTML = "";
+  const stub = el("div","qstub"), qi = el("span","qic"); qi.setAttribute("aria-hidden","true"); qi.innerHTML = ICON[curTheme()]; stub.append(qi, el("span","qlab","Question"), el("b","qnum",String(i+1)), el("span","qof","of "+qs.length));
+  if (flags[i]) stub.appendChild(el("span","qflag","⚑ Flagged"));
+  const body = el("div","qbody"); main.append(stub, body);
+  const tags = el("div","tags");
+  tags.append(el("span","tag","PDF Q"+q.n));
+  if (q.cat !== "General") tags.append(el("span","tag",q.cat));
+  body.append(tags, el("p","stem",q.q));
+  q.options.forEach((t,k) => {
+    const b = el("button","opt"); b.append(el("span","k",L[k]), el("span","",t));
+    const locked = practice && picked !== null;
+    if(locked){ if(k === q.answer) b.classList.add("ok"); else if(k === picked) b.classList.add("no"); }
+    else if(picked === k) b.classList.add("sel");
+    b.disabled = locked;
+    b.onclick = () => { ans[i] = k; render(); };
+    body.appendChild(b);
+  });
+  if(practice && picked !== null){
+    const w = el("div","why");
+    w.append(el("b","", picked === q.answer ? "Correct." : "Not quite. The answer is "+L[q.answer]+". "+q.options[q.answer]), el("span","",q.explanation || ""));
+    body.appendChild(w);
+  }
+  const row = el("div","btns");
+  const prev = el("button","btn prev","‹ Previous"); prev.disabled = i === 0; prev.onclick = () => { i--; render(); };
+  const fl = el("button","btn flag"+(flags[i]?" on":""), flags[i] ? "⚑ Flagged" : "⚑ Flag for Review"); fl.onclick = () => { flags[i] = !flags[i]; render(); };
+  const next = el("button","btn","Next ›"); next.disabled = i === qs.length-1; next.onclick = () => { i++; render(); window.scrollTo(0,0); };
+  row.append(prev, fl, next); body.appendChild(row);
+  renderGrid();
+  autoSave();
+}
+
+function renderConfirm(){
+  const un = ans.filter(a=>a===null).length, fg = flags.filter(Boolean).length;
+  main.innerHTML = "";
+  main.append(el("h1","","Submit exam?"));
+  const w = el("div","warn");
+  w.textContent = un + " unanswered, " + fg + " flagged for review. You can go back and change answers until you submit.";
+  main.appendChild(w);
+  const row = el("div","btns");
+  const back = el("button","btn ghost","Keep working"); back.onclick = () => { view = "quiz"; render(); };
+  const ok = el("button","btn","Submit now"); ok.onclick = () => { stopTimer(); view = "result"; render(); };
+  row.append(back, ok); main.appendChild(row);
+}
+
+function reviewItem(q, j){
+  const a = ans[j], good = a === q.answer, d = el("div","rev"), head = el("p","");
+  head.append(el("span","st "+(a === null ? "na" : good ? "ok" : "no"), a === null ? "Not answered" : good ? "Correct" : "Wrong"),
+    document.createTextNode("Q"+(j+1)+" (PDF Q"+q.n+"). "+q.q));
+  d.appendChild(head);
+  q.options.forEach((t,k) => {
+    const r = el("div","ro"+(k === q.answer ? " ok" : (k === a ? " no" : "")));
+    const tag = k === q.answer ? (a === k ? " (your answer, correct)" : " (correct answer)") : (k === a ? " (your answer)" : "");
+    r.append(el("b","",L[k]), el("span","",t + tag));
+    d.appendChild(r);
+  });
+  if (q.explanation) d.appendChild(el("small","",q.explanation));
+  return d;
+}
+function renderResult(){
+  const sessionId = attemptId;
+  if (!reviewOnly && curId){ delRecord(curId); curId = null; }
+  $("side").classList.add("hide"); $("fill").style.width = "100%";
+  const right = ans.reduce((n,a,j)=> n + (a === qs[j].answer ? 1 : 0), 0);
+  const pct = Math.round(right/qs.length*100), ok = pct >= 70;
+  main.innerHTML = "";
+  const wrongN = qs.filter((q, j) => ans[j] !== null && ans[j] !== q.answer).length, skipN = ans.filter(a => a === null).length;
+  const ring = document.createElement("div"); ring.className = "ring " + (ok ? "pass" : "fail");
+  ring.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><circle class="rt" cx="60" cy="60" r="52"/><circle class="rp" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="' + (326.7 * (1 - pct / 100)).toFixed(1) + '"/></svg>';
+  ring.appendChild(el("div","score " + (ok ? "pass" : "fail"), pct + "%"));
+  const info = el("div","rinfo");
+  info.append(el("h2","", ok ? "You passed" : "Keep practicing"),
+    el("p","", right + " of " + qs.length + " correct. " + (ok ? "That is a pass." : "Passing is 70%. Review the misses below and try again.")));
+  if (tTotal) info.appendChild(el("p","", (timedOut ? "Time’s up, so the exam was submitted automatically. " : "") + "Time used: " + fmt(Math.min(tEnd - tStart - pausedTotal, tTotal)) + " of " + fmt(tTotal) + "."));
+  if (breaksTaken || pauseUsed) info.appendChild(el("p","","Breaks taken: " + breaksTaken + (pauseUsed ? ". Emergency pause used: " + fmt(pauseUsed, true) : "") + "."));
+  const tiles = el("div","tiles");
+  const flagN = flags.filter(Boolean).length, flagRight = qs.filter((q, j) => flags[j] && ans[j] === q.answer).length;
+  const GROUPS = {
+    right: ["Answered correctly", "Questions you got right.", j => ans[j] === qs[j].answer],
+    wrong: ["Answered wrong", "Questions you got wrong.", j => ans[j] !== null && ans[j] !== qs[j].answer],
+    blank: ["Left unanswered", "Questions you skipped.", j => ans[j] === null],
+    flagright: ["Flagged and answered correctly", "You weren’t sure about these, but you got them right. Look them over so the answers are knowledge, not luck.", j => flags[j] && ans[j] === qs[j].answer]
+  };
+  const tl = el("div","tilelist hide"); tl.id = "tilelist"; tl.setAttribute("role","region"); tl.setAttribute("aria-label","Question list");
+  let openKind = null; const tileBtns = [];
+  const showKind = k => {
+    openKind = openKind === k ? null : k;
+    tileBtns.forEach(([kk, b]) => b.setAttribute("aria-expanded", String(kk === openKind)));
+    tl.innerHTML = "";
+    if (!openKind){ tl.classList.add("hide"); return; }
+    const [title, hint, test] = GROUPS[openKind], idx = qs.map((q, j) => j).filter(test);
+    const head = el("div","tlhead"), close = el("button","chip sm","Close");
+    close.onclick = () => showKind(openKind);
+    head.append(el("h2","", title + " (" + idx.length + ")"), close);
+    tl.append(head, el("p","note",hint));
+    if (!idx.length) tl.appendChild(el("p","note","No questions in this group."));
+    idx.forEach(j => tl.appendChild(reviewItem(qs[j], j)));
+    tl.classList.remove("hide"); if (tl.getBoundingClientRect().top > innerHeight - 140) tl.scrollIntoView({behavior: "smooth", block: "nearest"});
+  };
+  [["g", right, "Correct", "right"], ["r", wrongN, "Wrong", "wrong"], ["", skipN, "Unanswered", "blank"]].concat(flagN ? [["g", flagRight, "Flagged & right", "flagright"]] : []).forEach(([c, v, l, k]) => {
+    const t = el("button","tile " + c); t.type = "button"; t.setAttribute("aria-expanded","false"); t.setAttribute("aria-controls","tilelist"); t.title = "Show these questions";
+    t.append(el("b","",String(v)), el("span","",l)); t.onclick = () => showKind(k); tileBtns.push([k, t]); tiles.appendChild(t);
+  });
+  info.appendChild(el("p","note","Select a box to see those questions."));
+  info.appendChild(tiles);
+  const rhero = el("div","rhero"); rhero.append(ring, info); main.appendChild(rhero);
+  const row = el("div","btns");
+  const again = el("button","btn","New quiz"); again.onclick = () => { reviewOnly = false; fromLog = false; curId = null; view = "start"; render(); };
+  const missed = qs.filter((q,j)=> ans[j] !== q.answer);
+  const retry = el("button","btn ghost","Retry missed questions"); retry.disabled = !missed.length;
+  retry.onclick = () => { qs = shuffle(missed); ans = qs.map(()=>null); flags = qs.map(()=>false); i = 0; view = "quiz"; curId = attemptId = newId(); reviewOnly = false; fromLog = false; beginTimer(qs.length); render(); };
+  row.append(again, retry);
+  if (fromLog){ const bk = el("button","btn ghost","‹ Back to Exam Log"); bk.onclick = () => { fromLog = false; reviewOnly = false; view = "log"; render(); }; row.insertBefore(bk, row.firstChild); }
+  if (!reviewOnly && !lockEligible()){ const sv = el("button","btn ghost","Save for later review"); sv.onclick = () => saveFinished(sv); row.appendChild(sv); }
+  main.appendChild(row);
+  main.appendChild(tl);
+  if (!reviewOnly && lockEligible()) main.appendChild(permPanel());
+  if (!reviewOnly && sessionId) main.appendChild(logBox(sessionId));
+  const fsec = flaggedSection(); if (fsec) main.appendChild(fsec);
+  if (cfg.mode === "exam" || reviewOnly){
+    const h = el("h2","","Answer review"); h.style.marginTop = "26px"; main.appendChild(h);
+    let filter = "all";
+    const bar = el("div","chips"), list = el("div","");
+    const defs = [["all","All ("+qs.length+")"],["wrong","Wrong or unanswered ("+missed.length+")"],["right","Correct ("+right+")"]].concat(flagN ? [["flag","Flagged ("+flagN+")"]] : []);
+    const btns = defs.map(([v,label]) => { const b = el("button","chip",label); b.onclick = () => { filter = v; draw(); }; bar.appendChild(b); return [v,b]; });
+    function draw(){
+      btns.forEach(([v,b]) => b.setAttribute("aria-pressed", v === filter));
+      list.innerHTML = "";
+      qs.forEach((q,j) => {
+        const good = ans[j] === q.answer;
+        if ((filter === "wrong" && good) || (filter === "right" && !good) || (filter === "flag" && !flags[j])) return;
+        list.appendChild(reviewItem(q, j));
+      });
+    }
+    main.append(bar, list); draw();
+  } else if (missed.length){
+    const h = el("h2","","Missed questions ("+missed.length+")"); h.style.marginTop = "26px"; main.appendChild(h);
+    qs.forEach((q,j) => {
+      if(ans[j] === q.answer) return;
+      const d = el("div","rev");
+      d.append(el("p","","Q"+q.n+". "+q.q),
+        el("small","","Your answer: "+(ans[j]===null ? "none" : L[ans[j]]+". "+q.options[ans[j]])+". Correct: "+L[q.answer]+". "+q.options[q.answer]+"."),
+        el("small","",q.explanation || ""));
+      main.appendChild(d);
+    });
+  }
+  window.scrollTo(0,0);
+}
+
+function render(){
+  if (!currentUser) view = authReady ? "auth" : "loading";
+  main.className = "card" + (view === "quiz" ? " qcard" : view === "auth" ? " authcard" : "");
+  if(view === "loading") renderLoading();
+  else if(view === "auth") renderAuth();
+  else if(view === "start") renderStart();
+  else if(view === "quiz") renderQuiz();
+  else if(view === "confirm") renderConfirm();
+  else if(view === "log") renderLog();
+  else renderResult();
+  $("logbtn").disabled = !currentUser || view === "quiz" || view === "confirm";
+  $("wrap").classList.toggle("solo", $("side").classList.contains("hide"));
+  $("topmid").textContent = view === "auth" ? "Sign in" : view === "loading" ? "" : view === "log" ? "Exam Log" : view === "quiz" ? (cfg.mode === "exam" ? "Exam" : "Practice") + " · " + ans.filter(a => a !== null).length + " of " + qs.length + " answered" : "";
+}
+$("sub").onclick = () => { view = "confirm"; render(); };
+$("logbtn").onclick = () => { if (!currentUser || view === "quiz" || view === "confirm") return; fromLog = false; reviewOnly = false; view = "log"; render(); };
+$("savebtn").onclick = saveProgress;
+startOnline();
+</script>
+</body>
+</html>
